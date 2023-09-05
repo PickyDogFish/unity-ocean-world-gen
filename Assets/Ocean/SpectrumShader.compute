@@ -1,15 +1,17 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CalculateInitialSpectrum
 #pragma kernel CalculateConjugatedSpectrum
+#pragma kernel UpdateSpectrum
 
 #include "GPURandom.hlsl"
 #include "Oceanography.hlsl"
 
-int Size;
-float _WindSpeed, _Scale, _Depth;
+uint _Size;
+float _WindSpeed, _Scale, _Depth, _FrameTime;
 
 
-RWTexture2DArray<float4> H0;
+RWTexture2DArray<float4> _InitialSpectrum;
+RWTexture2DArray<float4> _TimeSpectrum;
 // wave vector x, chop, wave vector z, frequency
 
 float NormalRandom(uint3 id)
@@ -24,7 +26,7 @@ void CalculateInitialSpectrum(uint3 id : SV_DispatchThreadID)
 {
     // the last +5 is random
     float2 noise = float2(NormalRandom(id), NormalRandom(uint3(id.xy, id.z + 5)));
-    float2 k = float2(OCEANOGRAPHY_PI * (id.x - Size/2) / _Scale, OCEANOGRAPHY_PI * (id.y - Size/2) / _Scale);
+    float2 k = float2(OCEANOGRAPHY_PI * (id.x - _Size/2) / _Scale, OCEANOGRAPHY_PI * (id.y - _Size/2) / _Scale);
     float kLength = length(k);
     float omega = Frequency(kLength, _Depth);
     float peakOmega = PiersonMoskowitzPeakOmega(_WindSpeed);
@@ -33,7 +35,7 @@ void CalculateInitialSpectrum(uint3 id : SV_DispatchThreadID)
     //float lambda = 0.5;//Chop * eq.g;
     //WavesData[id] = float4(k.x, lambda, k.y, omega);
 
-    H0[id] = float4(noise * spectrum, 1, 1);
+    _InitialSpectrum[id] = float4(noise * spectrum, 1, 1);
 }
 
 
@@ -41,8 +43,34 @@ void CalculateInitialSpectrum(uint3 id : SV_DispatchThreadID)
 void CalculateConjugatedSpectrum(uint3 id : SV_DispatchThreadID)
 {
     uint i = 0;
-    float2 h0 = H0.Load(uint3(id.xy, i));
-    float2 h0c = H0.Load(uint3((Size - id.x) % Size, (Size - id.y) % Size, i));
+    float2 h0 = _InitialSpectrum.Load(uint3(id.xy, i)).xy;
+    float2 h0c = _InitialSpectrum.Load(uint3((_Size - id.x) % _Size, (_Size - id.y) % _Size, i)).xy;
 
-    H0[id] = float4(h0, h0c.x, -h0c.y);
+    _InitialSpectrum[id] = float4(h0, h0c.x, -h0c.y);
+}
+
+float2 ComplexMult(float2 a, float2 b) {
+    return float2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+}
+
+float2 EulerFormula(float x) {
+    return float2(cos(x), sin(x));
+}
+
+[numthreads(8, 8, 1)]
+void UpdateSpectrum(uint3 id : SV_DISPATCHTHREADID) {
+    float4 initialSignal = _InitialSpectrum.Load(id);
+    float2 spectrum = initialSignal.xy;
+    float2 spectrumConj = initialSignal.zw;
+
+    float halfN = _Size / 2.0f;
+
+    float n = id.x - halfN;
+    float m = id.y - halfN;
+
+    float2 K = float2(n, m) * 2.0f * OCEANOGRAPHY_PI / _Scale;
+    float w_0 = 2.0f * OCEANOGRAPHY_PI / 200.0f;
+    float dispersion = floor(sqrt(9.8f * length(K)) / w_0) * w_0 * _FrameTime;
+
+    _TimeSpectrum[uint3(id.xy, 0)] = float4(ComplexMult(spectrum, EulerFormula(dispersion)) + ComplexMult(spectrumConj, EulerFormula(-dispersion)), 0, 0);
 }
