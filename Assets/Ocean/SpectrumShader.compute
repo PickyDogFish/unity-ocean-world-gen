@@ -1,0 +1,48 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CalculateInitialSpectrum
+#pragma kernel CalculateConjugatedSpectrum
+
+#include "GPURandom.hlsl"
+#include "Oceanography.hlsl"
+
+int Size;
+float _WindSpeed, _Scale, _Depth;
+
+
+RWTexture2DArray<float4> H0;
+// wave vector x, chop, wave vector z, frequency
+
+float NormalRandom(uint3 id)
+{
+	float2 random01 = hash23(id);
+    return cos(2.0 * OCEANOGRAPHY_PI * random01.x) * sqrt(-2.0 * log(random01.y));
+}
+
+
+[numthreads(8,8,1)]
+void CalculateInitialSpectrum(uint3 id : SV_DispatchThreadID)
+{
+    // the last +5 is random
+    float2 noise = float2(NormalRandom(id), NormalRandom(uint3(id.xy, id.z + 5)));
+    float2 k = float2(OCEANOGRAPHY_PI * (id.x - Size/2) / _Scale, OCEANOGRAPHY_PI * (id.y - Size/2) / _Scale);
+    float kLength = length(k);
+    float omega = Frequency(kLength, _Depth);
+    float peakOmega = PiersonMoskowitzPeakOmega(_WindSpeed);
+    float spectrum = PiersonMoskowitz(omega, peakOmega);
+
+    //float lambda = 0.5;//Chop * eq.g;
+    //WavesData[id] = float4(k.x, lambda, k.y, omega);
+
+    H0[id] = float4(noise * spectrum, 1, 1);
+}
+
+
+[numthreads(8, 8, 1)]
+void CalculateConjugatedSpectrum(uint3 id : SV_DispatchThreadID)
+{
+    uint i = 0;
+    float2 h0 = H0.Load(uint3(id.xy, i));
+    float2 h0c = H0.Load(uint3((Size - id.x) % Size, (Size - id.y) % Size, i));
+
+    H0[id] = float4(h0, h0c.x, -h0c.y);
+}
