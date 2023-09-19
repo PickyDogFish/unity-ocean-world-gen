@@ -11,13 +11,14 @@ public class OceanParameters : ScriptableObject
     /// <summary>
     /// The fourier size. Must be a pow2 number.
     /// </summary>
-    public int size = 128;
+    public int size = 256;
 
     /// <summary>
     /// The wind speed and direction.
     /// </summary>
     [SerializeField]
     public Vector2 windSpeed = new Vector2(32.0f, 32.0f);
+    
 
     /// <summary>
     /// The depth of sea for the pierson-moskowitz spectrum.
@@ -29,5 +30,5 @@ public class OceanParameters : ScriptableObject
     [SerializeField]
     public float waveAmplitude = 1;
 
-    public float lengthScale = 256;
+    public float lengthScale = 512;
 }

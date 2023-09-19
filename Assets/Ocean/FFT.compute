@@ -1,0 +1,54 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel ComputeDFT
+
+#include "Oceanography.hlsl"
+#include "ComplexMath.hlsl"
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2DArray<float4> _TimeSpectrum;
+RWTexture2DArray<float4> _HeightTex;
+
+uint _Size;
+float _Scale;
+
+[numthreads(8,8,1)]
+void ComputeDFT (uint3 id : SV_DispatchThreadID)
+{
+    float halfN = _Size / 2.0f;
+
+    float2 x = id.xy - halfN;
+
+    float2 height = 0.0f;
+    for (uint m = 0; m < _Size; ++m) {
+        float kz = 2.0f * OCEANOGRAPHY_PI * (m - halfN) / _Scale;
+        for (uint n = 0; n < _Size; ++n) {
+            float kx = 2.0f * OCEANOGRAPHY_PI * (n - halfN) / _Scale;
+            float2 K = float2(kx, kz);
+            float kMag = length(K);
+            float kdotx = dot(K, x);
+
+            float2 c = EulerFormula(kdotx);
+            float2 htilde = ComplexMult(_TimeSpectrum[uint3(n, m, 0)], c);
+            if (kMag < 0.001f) htilde = 0.0f;
+            if (htilde.x < 0){
+                htilde.x = -htilde.x;
+            }
+            height = height + htilde;
+        }
+    }
+
+    
+
+/*     float kz = 2.0f * OCEANOGRAPHY_PI * (id.x - halfN) / _Scale;
+    float kx = 2.0f * OCEANOGRAPHY_PI * (id.y - halfN) / _Scale;
+    float2 K = float2(kx, kz);
+    float kMag = length(K);
+    float kdotx = dot(K, x);
+    float2 c = EulerFormula(kdotx);
+    float2 htilde = ComplexMult(_TimeSpectrum[uint3(id.x, id.y, 0)], c);
+
+    if (kMag < 0.001f) htilde = 0.0f; */
+    _HeightTex[uint3(id.xy,0)] = float4(height, 0, 1);
+    //_HeightTex[uint3(id.xy,0)] = float4(c,htilde);
+}

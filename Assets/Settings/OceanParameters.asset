@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 991a4d3780b27924787e89a6af09a043, type: 3}
   m_Name: OceanParameters
   m_EditorClassIdentifier: 
-  resolution: 128
+  size: 256
   windSpeed: {x: 32, y: 32}
   depth: 1000
   waveAmplitude: 1
