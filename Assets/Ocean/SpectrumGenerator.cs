@@ -7,14 +7,17 @@ namespace OceanSimulation
     {
         System.Random rand = new System.Random();
         [SerializeField] private OceanParameters oceanParameters;
-        public Texture2D spectrumTexture;
+        [SerializeField] public Texture2D spectrumTexture;
 
         public Vector4[,] spectrum;
+        public Vector2[,] timeSpectrum;
 
         // Start is called before the first frame update
         void Start()
         {
             CalculateInitialSpectrum();
+            spectrumTexture = CreateTexture(oceanParameters.size);
+            timeSpectrum = new Vector2[oceanParameters.size,oceanParameters.size]; 
 
             /* spectrumTexture = CreateTexture(oceanParameters.resolution);
             for (int i = 0; i < oceanParameters.resolution; i++)
@@ -32,15 +35,15 @@ namespace OceanSimulation
 
         void Update()
         {
-            spectrumTexture = CreateTexture(oceanParameters.size);
             for (int i = 0; i < oceanParameters.size; i++)
             {
                 for (int j = 0; j < oceanParameters.size; j++)
                 {
 
                     //spectrumTexture.SetPixel(i, j, spectrum[i,j]);
-                    Vector2 timeSpectrum = TimeSpectrum(Time.deltaTime, i, j);
-                    spectrumTexture.SetPixel(i, j, new Color(timeSpectrum.x, timeSpectrum.y, 0, 0));
+                    Vector2 timeSpectrumVal = TimeSpectrum(Time.fixedTime/10, i, j);
+                    timeSpectrum[i,j] = timeSpectrumVal;
+                    spectrumTexture.SetPixel(i, j, new Color(timeSpectrumVal.x, timeSpectrumVal.y, 0, 0));
                 }
             }
             spectrumTexture.Apply();

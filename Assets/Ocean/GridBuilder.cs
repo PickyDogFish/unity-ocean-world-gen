@@ -2,10 +2,13 @@ using UnityEngine;
 
 public class GridBuilder : MonoBehaviour
 {
+
+    [SerializeField] private OceanParameters oceanParameters;
+
     private void Start()
     {
         Debug.Log("setting mesh");
-        GetComponentInChildren<MeshFilter>().mesh = BuildPlane(128, 128, Vector3.zero);
+        GetComponentInChildren<MeshFilter>().mesh = BuildPlane(oceanParameters.size, oceanParameters.size, Vector3.zero);
         //GetComponentInChildren<MeshFilter>().mesh = BuildRing(128);
         //GetComponentInChildren<MeshFilter>().mesh = BuildClipMap(16, 3);
 

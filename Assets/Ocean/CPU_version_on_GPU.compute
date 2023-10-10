@@ -1,0 +1,44 @@
+#pragma kernel CalculateHeight
+
+
+Texture2D<float4> _TimeSpectrum;
+RWTexture2D<float4> _HeightMap;
+uint _Size;
+float _LengthScale, _Amplitude;
+const float PI = 3.1415926535;
+
+float2 Euler(float a)
+{
+    return float2(cos(a), sin(a));
+}
+
+float2 ComplexMult(float2 a, float2 b)
+{
+    return float2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+}
+
+
+[numthreads(8,8,1)]
+void CalculateHeight(uint3 id : SV_DispatchThreadID){
+
+    float halfN = _Size/ 2.0f;
+    float2 idHalf = id.xy - halfN;
+
+    float height = 0;
+    for (uint x = 0; x < _Size; x++)
+    {
+        for (uint y = 0; y < _Size; y++)
+        {
+            float2 k = float2(x - halfN, y - halfN) * 2.0 * PI / _LengthScale;
+            float4 spectrum = _TimeSpectrum[uint2(x,y)];
+
+            float kdotx = dot(k, idHalf* 0.1);
+            float2 c = Euler(kdotx);
+
+            float2 htilde = ComplexMult(spectrum.xy, c);
+            height += htilde.x * _Amplitude;
+        }
+    }
+    _HeightMap[id.xy] = height;
+
+}
