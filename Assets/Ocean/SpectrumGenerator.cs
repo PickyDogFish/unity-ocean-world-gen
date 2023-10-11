@@ -132,7 +132,7 @@ namespace OceanSimulation
             Vector2 k = new Vector2(Mathf.PI * (2 * n_prime - oceanParameters.size) / oceanParameters.lengthScale, Mathf.PI * (2 * m_prime - oceanParameters.size) / oceanParameters.lengthScale);
 
             //dispersion
-            float omegat = Dispersion(n_prime, m_prime) * t;
+            float omegat = Dispersion(k.magnitude) * t;
             float cosinus = Mathf.Cos(omegat);
             float sinus = Mathf.Sin(omegat);
 
@@ -142,12 +142,10 @@ namespace OceanSimulation
             return hke + hminuske;
         }
 
-        float Dispersion(int n_prime, int m_prime)
+        float Dispersion(float kLen)
         {
             float w_0 = 2.0f * Mathf.PI / 200.0f;
-            float kx = Mathf.PI * (2 * n_prime - oceanParameters.size) / oceanParameters.lengthScale;
-            float kz = Mathf.PI * (2 * m_prime - oceanParameters.size) / oceanParameters.lengthScale;
-            return Mathf.Floor(Mathf.Sqrt(OceanParameters.GRAVITY * Mathf.Sqrt(kx * kx + kz * kz)) / w_0) * w_0;
+            return Mathf.Floor(Mathf.Sqrt(OceanParameters.GRAVITY * kLen) / w_0) * w_0;
         }
 
         Vector2 ComplexMultiply(float a0, float b0, float a1, float b1)
