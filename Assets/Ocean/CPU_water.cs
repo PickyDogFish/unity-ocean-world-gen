@@ -12,6 +12,7 @@ public class CPU_water : MonoBehaviour
     [SerializeField] OceanParameters oceanParams;
     private float[,] heightMap;
     [SerializeField] Texture2D heightTex;
+    [SerializeField] Texture2D testTex;
     [SerializeField] RenderTexture heightRT;
 
     [SerializeField] Material oceanMaterial;
@@ -30,7 +31,10 @@ public class CPU_water : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        if (!runOnGPU){
+        if (testTex != null){
+            oceanMaterial.SetTexture(Shader.PropertyToID("_HeightMap"), testTex);
+        }
+        else if (!runOnGPU){
             oceanMaterial.SetTexture(Shader.PropertyToID("_HeightMap"), heightTex);
             CalculateHeight();
             WriteToTex();
@@ -52,7 +56,8 @@ public class CPU_water : MonoBehaviour
                 {
                     for (int y = 0; y < n; y++)
                     {
-                        Vector2 k = new Vector2(x - n / 2, y - n / 2) * Mathf.PI / oceanParams.lengthScale;
+                        //k represents the frequency
+                        Vector2 k = new Vector2(x - n / 2, y - n / 2) * Mathf.PI / oceanParams.lengthScale * 16;
                         Vector4 spectrum = spectrumGen.timeSpectrum[x,y];
                         float a = spectrum[0];
                         float b = spectrum[1];
@@ -68,7 +73,7 @@ public class CPU_water : MonoBehaviour
                         height += htilde.x;
                     }
                 }
-                //Debug.Log(height);
+                Debug.Log(height);
                 heightMap[hx, hy] = height;
             }
         }

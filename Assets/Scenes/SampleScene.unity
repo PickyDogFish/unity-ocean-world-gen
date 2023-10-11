@@ -270,9 +270,10 @@ MonoBehaviour:
   spectrumGen: {fileID: 0}
   oceanParams: {fileID: 11400000, guid: 366fad08611b10342a225ac0226998dd, type: 2}
   heightTex: {fileID: 0}
+  testTex: {fileID: 0}
   heightRT: {fileID: 0}
   oceanMaterial: {fileID: 2100000, guid: 9970fc5d3eb903f4c9d2473d7e829c9b, type: 2}
-  runOnGPU: 1
+  runOnGPU: 0
   heightShader: {fileID: 7200000, guid: 1380b90f703ad384fbfc1b54e95f1fb8, type: 3}
 --- !u!1 &330585543
 GameObject:
