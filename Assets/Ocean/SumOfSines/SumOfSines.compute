@@ -1,0 +1,30 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CalculateHeight
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> _HeightTex;
+RWTexture2D<float4> _NormalTex;
+uint _TexSize, _NumOfSines;
+float _Time;
+const float PI = 3.14159265257989;
+
+
+[numthreads(8,8,1)]
+void CalculateHeight (uint3 id : SV_DispatchThreadID)
+{
+    float amplitude = 1;
+    float frequency = 0.1;
+
+    float amplitudeMult = 0.85;
+    float frequencyMult = 1.15;
+
+    float heightSum = 0;
+    for (uint i = 0; i < _NumOfSines; i++){
+        heightSum += amplitude * sin(id.x * frequency + _Time);
+        amplitude = amplitude * amplitudeMult;
+        frequency = frequency * frequencyMult;
+    }
+
+    _HeightTex[id.xy] = heightSum;
+}
