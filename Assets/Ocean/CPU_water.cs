@@ -57,14 +57,14 @@ public class CPU_water : MonoBehaviour
                     for (int y = 0; y < n; y++)
                     {
                         //k represents the frequency
-                        Vector2 k = new Vector2(x - n / 2, y - n / 2) * Mathf.PI / oceanParams.lengthScale * 16;
-                        Vector4 spectrum = spectrumGen.timeSpectrum[x,y];
+                        Vector2 k = new Vector2(x - n / 2, y - n / 2) * Mathf.PI / oceanParams.lengthScale;
+                        Vector4 spectrum = spectrumGen.timeSpectrum[y,x];
                         float a = spectrum[0];
                         float b = spectrum[1];
                         //float A = Mathf.Sqrt(a * a + b * b);
                         //float phi = Mathf.Atan2(b, a);
 
-                        float kdotx = Vector2.Dot(k, new Vector2(hx, hy));
+                        float kdotx = Vector2.Dot(k, new Vector2(hx, hy)) + 0.1f;
                         Vector2 c = Euler(kdotx);
 
                         Vector2 htilde = ComplexMult(new Vector2(a, b), c);
@@ -74,7 +74,7 @@ public class CPU_water : MonoBehaviour
                     }
                 }
                 Debug.Log(height);
-                heightMap[hx, hy] = height;
+                heightMap[hx, hy] = height * oceanParams.waveAmplitude;
             }
         }
     }

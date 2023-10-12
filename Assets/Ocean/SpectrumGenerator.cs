@@ -153,6 +153,4 @@ namespace OceanSimulation
             return new Vector2(a0 * a1 - b0 * b1, a0 * b1 + b0 * a1);
         }
     }
-
-
 }

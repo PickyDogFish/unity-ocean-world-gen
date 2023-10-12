@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: OceanParameters
   m_EditorClassIdentifier: 
   size: 16
-  windSpeed: {x: 100, y: 100}
-  depth: 10
+  windSpeed: {x: 500, y: 500}
+  depth: 100
   waveAmplitude: 4
   lengthScale: 32

@@ -8,7 +8,7 @@ public class GridBuilder : MonoBehaviour
     private void Start()
     {
         Debug.Log("setting mesh");
-        GetComponentInChildren<MeshFilter>().mesh = BuildPlane(oceanParameters.size, oceanParameters.size, Vector3.zero);
+        GetComponentInChildren<MeshFilter>().mesh = BuildPlane(oceanParameters.size*8, oceanParameters.size*8, Vector3.zero);
         //GetComponentInChildren<MeshFilter>().mesh = BuildRing(128);
         //GetComponentInChildren<MeshFilter>().mesh = BuildClipMap(16, 3);
 
