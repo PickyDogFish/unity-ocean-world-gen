@@ -689,9 +689,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   texSize: 256
   numOfSines: 4
+  heightMult: 1
   heightTex: {fileID: 0}
   normalTex: {fileID: 0}
-  heightMaterial: {fileID: 2100000, guid: 9970fc5d3eb903f4c9d2473d7e829c9b, type: 2}
+  material: {fileID: 2100000, guid: 9970fc5d3eb903f4c9d2473d7e829c9b, type: 2}
   sosShader: {fileID: 7200000, guid: 267641d92972d62468ca2fe6f68db601, type: 3}
 --- !u!4 &1890975380
 Transform:
@@ -701,7 +702,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1890975378}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -9.414021, y: -96.18139, z: 109.809395}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

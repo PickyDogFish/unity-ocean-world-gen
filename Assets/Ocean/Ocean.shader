@@ -1,11 +1,12 @@
 // This shader fills the mesh shape with a color predefined in the code.
-Shader "Custom/Test"
+Shader "Custom/Water"
 {
     // The properties block of the Unity shader. In this example this block is empty
     // because the output color is predefined in the fragment shader code.
     Properties
     {
         [HeightMap] _HeightMap("Height Map", 2D) = "white"
+        _HeightMult("Height Multiplier", float) = 1
     }
 
     // The SubShader block containing the Shader code.
@@ -51,6 +52,10 @@ Shader "Custom/Test"
 
             v2f vert(Attributes input){
                 v2f output;
+                
+                float height = _HeightMap.SampleLevel(sampler_HeightMap, input.uv, 0.0f);
+                input.position += float3(5.0, height, 0.0);
+                
                 VertexPositionInputs posInputs = GetVertexPositionInputs(input.position);
                 VertexNormalInputs normInputs = GetVertexNormalInputs(input.normalOS);
 
@@ -58,41 +63,14 @@ Shader "Custom/Test"
                 output.normalWS = normInputs.normalWS;
                 output.uv = TRANSFORM_TEX(input.uv, _HeightMap);
                 output.positionWS = posInputs.positionWS;
-                float height = SAMPLE_TEXTURE2D(_HeightMap, sampler_HeightMap, input.uv);
-                output.positionOS = input.position + float3(0,height,0);
+                output.positionOS = input.position;
                 return output; 
             }
 
             float4 frag(v2f input) : SV_TARGET{
 
-                float3 terrainColor = float3(0.6,0.7,0.8);
-
-                //initializes all fields as 0
-                InputData lightingInput = (InputData)0;
-                //could maybe skip normalize
-                lightingInput.normalWS = normalize(input.normalWS);
-                lightingInput.positionWS = input.positionWS;
-                lightingInput.viewDirectionWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
-                lightingInput.shadowCoord = TransformWorldToShadowCoord(input.positionWS);
-
-
-                SurfaceData surfaceInput = (SurfaceData)0;
-                surfaceInput.albedo = terrainColor;
-                //surfaceInput.alpha = colorSample.a * _ColorTint.a;
-                surfaceInput.specular = 1;
-                surfaceInput.smoothness = 0.5;
-
-                //lightingInput.normalWS = NormalizeNormalPerPixel(input.normalWS);
                 
-                //lightingInput.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, lightingInput.normalWS);
-
-                //return colorSample * _ColorTint;
-                float4 colorPBR = UniversalFragmentPBR(lightingInput, surfaceInput);
-                if (length(colorPBR) <= 0.05){
-                    terrainColor = terrainColor * 0.05;
-                    colorPBR = float4(terrainColor.x, terrainColor.y, terrainColor.z, 1);
-                }
-                return colorPBR;
+                return float4(1,1,1,1);
             }
             ENDHLSL
         }
