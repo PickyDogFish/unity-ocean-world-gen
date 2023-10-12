@@ -120,6 +120,7 @@ public class GridBuilder : MonoBehaviour
                 Vector3 normalPosition = new Vector3(x, 1, z);
                 verts[x + z * (width + 1)] = normalPosition - pivot;
                 normals[x + z * (width + 1)] = Vector3.up;
+                uvs[x + z * (width + 1)] = new Vector2((float)x/width, (float)z/width);
             }
         }
 
