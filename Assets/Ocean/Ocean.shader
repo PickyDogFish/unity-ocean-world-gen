@@ -6,6 +6,7 @@ Shader "Custom/Water"
     Properties
     {
         [HeightMap] _HeightMap("Height Map", 2D) = "white"
+        [NormalMap] _NormalMap("Normal Map", 2D) = "green"
         _HeightMult("Height Multiplier", float) = 1
     }
 
@@ -31,13 +32,16 @@ Shader "Custom/Water"
 
             TEXTURE2D(_HeightMap);
             SAMPLER(sampler_HeightMap);
-
             float4 _HeightMap_ST;
+
+            TEXTURE2D(_NormalMap);
+            SAMPLER(sampler_NormalMap);
+
+            float3 _SunDirection;
 
             struct Attributes{
                 float3 position : POSITION;
                 float2 uv : TEXCOORD0;
-                float3 normalOS : NORMAL;
             };
 
             struct v2f{
@@ -55,12 +59,12 @@ Shader "Custom/Water"
                 
                 float height = _HeightMap.SampleLevel(sampler_HeightMap, input.uv, 0.0f);
                 input.position += float3(5.0, height, 0.0);
-                
                 VertexPositionInputs posInputs = GetVertexPositionInputs(input.position);
-                VertexNormalInputs normInputs = GetVertexNormalInputs(input.normalOS);
+                
+                float3 normal = _NormalMap.SampleLevel(sampler_NormalMap, input.uv, 0.0f);
+                output.normalWS = normal;
 
                 output.positionCS = posInputs.positionCS;
-                output.normalWS = normInputs.normalWS;
                 output.uv = TRANSFORM_TEX(input.uv, _HeightMap);
                 output.positionWS = posInputs.positionWS;
                 output.positionOS = input.position;
@@ -68,9 +72,7 @@ Shader "Custom/Water"
             }
 
             float4 frag(v2f input) : SV_TARGET{
-
-                
-                return float4(1,1,1,1);
+                return saturate(float4(0.1,0.3,0.8,1) * dot(_SunDirection, input.normalWS));
             }
             ENDHLSL
         }

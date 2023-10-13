@@ -687,12 +687,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c2bdfd312297574b83836f733edfcd3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mainLight: {fileID: 410087041}
   texSize: 256
   numOfSines: 4
   heightMult: 1
   heightTex: {fileID: 0}
   normalTex: {fileID: 0}
-  material: {fileID: 2100000, guid: 9970fc5d3eb903f4c9d2473d7e829c9b, type: 2}
+  material: {fileID: 2100000, guid: 0ec0ee098347dd34193abfa2ca74b962, type: 2}
   sosShader: {fileID: 7200000, guid: 267641d92972d62468ca2fe6f68db601, type: 3}
 --- !u!4 &1890975380
 Transform:
@@ -729,7 +730,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9970fc5d3eb903f4c9d2473d7e829c9b, type: 2}
+  - {fileID: 2100000, guid: 0ec0ee098347dd34193abfa2ca74b962, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

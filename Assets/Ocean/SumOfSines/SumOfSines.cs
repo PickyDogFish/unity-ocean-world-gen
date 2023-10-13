@@ -1,13 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 public class SumOfSines : MonoBehaviour
 {
+    [SerializeField] private Transform mainLight;
     [SerializeField] private int texSize = 256, numOfSines = 4;
     [SerializeField] private float heightMult = 1;
-    [SerializeField] private RenderTexture heightTex, normalTex;
+    private RenderTexture heightTex;
+    [SerializeField] private RenderTexture normalTex;
 
     [SerializeField] public Material material;
 
@@ -23,6 +22,11 @@ public class SumOfSines : MonoBehaviour
             enableRandomWrite = true
         };
         material.SetTexture("_HeightMap", heightTex);
+        material.SetTexture("_NormalMap", normalTex);
+        Vector3 lightDir = mainLight.forward.normalized;
+        lightDir.y = -lightDir.y;
+        material.SetVector("_SunDirection", lightDir);
+        Debug.Log(mainLight.forward.normalized);
 
         sosShader.SetTexture(0, Shader.PropertyToID("_HeightTex"), heightTex);
         sosShader.SetTexture(0, Shader.PropertyToID("_NormalTex"), normalTex);

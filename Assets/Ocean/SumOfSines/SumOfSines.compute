@@ -14,6 +14,10 @@ float rand(float2 co){
     return frac(sin(dot(co, float2(12.9898, 78.233))) * 43758.5453);
 }
 
+float2 WaveDir(float2 pos){
+    return float2(rand(pos.xy*69), rand(pos.yx));
+}
+
 [numthreads(8,8,1)]
 void CalculateHeight (uint3 id : SV_DispatchThreadID)
 {
@@ -22,17 +26,23 @@ void CalculateHeight (uint3 id : SV_DispatchThreadID)
 
     float amplitudeMult = 0.85;
     float frequencyMult = 1.15;
-    float ampSum = 0;
+
+    float2 normal = float2(0,0);
 
     float heightSum = 0;
     for (uint i = 0; i < _NumOfSines; i++){
-        float2 seed = float2(amplitude, frequency);
-        float2 dir = float2(rand(seed.xy*69), rand(seed.yx));
+        float2 dir = WaveDir(float2(amplitude, frequency));
         float val = dot(id.xy, dir);
         heightSum += amplitude * sin(val * frequency + _Time);
-        ampSum += amplitude;
+
+        float dx = frequency * amplitude * dir.x * cos(val * frequency + _Time);
+        float dy = frequency * amplitude * dir.y * cos(val * frequency + _Time);
+
+
+        normal = normal + float2(dx,dy);
         amplitude = amplitude * amplitudeMult;
         frequency = frequency * frequencyMult;
     }
-    _HeightTex[id.xy] = heightSum/ampSum;
+    _NormalTex[id.xy] = normalize(float4(normal.x, 1.0f, normal.y, 0));
+    _HeightTex[id.xy] = heightSum;
 }
