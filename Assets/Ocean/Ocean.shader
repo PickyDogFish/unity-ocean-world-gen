@@ -72,7 +72,7 @@ Shader "Custom/Water"
             }
 
             float4 frag(v2f input) : SV_TARGET{
-                return saturate(float4(0.1,0.3,0.8,1) * dot(_SunDirection, input.normalWS));
+                return (float4(0.1,0.3,0.8,1) * dot(_SunDirection, input.normalWS));
             }
             ENDHLSL
         }
