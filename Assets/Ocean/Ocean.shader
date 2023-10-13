@@ -72,7 +72,15 @@ Shader "Custom/Water"
             }
 
             float4 frag(v2f input) : SV_TARGET{
-                return (float4(0.1,0.3,0.8,1) * dot(_SunDirection, input.normalWS));
+                float3 diffuseColor = float3(0.1,0.3,0.8);
+                float4 specularColor = float4(diffuseColor, 1);
+                float3 ambientColor = float3(0.1,0.1,0.1);
+
+                float3 viewDir = normalize(_WorldSpaceCameraPos - input.positionWS);
+                float3 lambert = diffuseColor * dot(_SunDirection, input.normalWS);
+                float3 specular = LightingSpecular(_MainLightColor.rgb, _MainLightPosition, input.normalWS, viewDir, specularColor, 25);
+                float3 finalColor = ambientColor + lambert + specular;
+                return float4(finalColor, 1);
             }
             ENDHLSL
         }
