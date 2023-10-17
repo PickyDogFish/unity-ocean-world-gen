@@ -1,3 +1,4 @@
+using OceanSimulation;
 using UnityEngine;
 
 public class SumOfSines : MonoBehaviour
@@ -5,14 +6,16 @@ public class SumOfSines : MonoBehaviour
     [SerializeField] private Transform mainLight;
     [SerializeField] private int texSize = 256, numOfSines = 4;
     [SerializeField] private float heightMult = 1;
-    private RenderTexture heightTex;
+    [SerializeField] private RenderTexture heightTex;
     [SerializeField] private RenderTexture normalTex;
 
+    private SpectrumGenerator spectrumGen;
     [SerializeField] public Material material;
-
     [SerializeField] private ComputeShader sosShader;
     void Start()
     {
+        spectrumGen = GetComponent<SpectrumGenerator>();
+
         heightTex = new RenderTexture(256, 256, 0, RenderTextureFormat.RFloat)
         {
             enableRandomWrite = true
@@ -25,9 +28,6 @@ public class SumOfSines : MonoBehaviour
         material.SetTexture("_HeightMap", heightTex);
         material.SetTexture("_NormalMap", normalTex);
 
-        sosShader.SetTexture(0, Shader.PropertyToID("_HeightTex"), heightTex);
-        sosShader.SetTexture(0, Shader.PropertyToID("_NormalTex"), normalTex);
-        sosShader.SetInt(Shader.PropertyToID("_TexSize"), texSize);
     }
 
     // Update is called once per frame
@@ -40,6 +40,11 @@ public class SumOfSines : MonoBehaviour
     }
 
     void SetCSVariables(){
+        //all called in update so changes in shader update live
+        sosShader.SetTexture(0, Shader.PropertyToID("_HeightTex"), heightTex);
+        sosShader.SetTexture(0, Shader.PropertyToID("_NormalTex"), normalTex);
+        sosShader.SetInt(Shader.PropertyToID("_TexSize"), texSize);
+        sosShader.SetTexture(0, Shader.PropertyToID("_SpectrumTex"), spectrumGen.spectrumTexture);
         sosShader.SetInt(Shader.PropertyToID("_NumOfSines"), numOfSines);
         sosShader.SetFloat(Shader.PropertyToID("_Time"), Time.fixedTime);
     }
