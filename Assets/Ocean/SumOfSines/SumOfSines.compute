@@ -19,37 +19,90 @@ float2 WaveDir(float2 pos){
     return float2(rand(pos.xy*69), rand(pos.yx));
 }
 
-[numthreads(8,8,1)]
+float2 ComplexMult(float2 a, float2 b) {
+    return float2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+}
+
+float2 EulerFormula(float x) {
+    return float2(cos(x), sin(x));
+}
+
+[numthreads(8, 8, 1)]
+void CalculateHeight(uint3 id : SV_DISPATCHTHREADID) {
+    float texSize = 256;
+    float halfN = texSize / 2.0f;
+    uint _N = _NumOfSines;
+
+    float2 _Lambda = float2(-1,-1);
+
+    // texSize/numOfSines
+    float _LengthScale = 16;
+    
+    float2 x = id.xy - halfN;
+
+    float2 h = 0.0f;
+    float2 displacement = 0.0f;
+    float3 normal = 0.0f;
+
+    for (int m = 0; m < _N; ++m) {
+        float kz = 2.0f * PI * (m - halfN) / _LengthScale;
+        for (int n = 0; n < _N; ++n) {
+            float kx = 2.0f * PI * (n - halfN) / _LengthScale;
+            float2 K = float2(kx, kz) * 128;
+            float kMag = length(K);
+            float kdotx = dot(K, x);
+
+            float2 c = EulerFormula(kdotx);
+            float2 htilde = ComplexMult(_SpectrumTex[uint2(n, m)], c);
+            
+
+            h += htilde;
+            normal += float3(-K.x * htilde.y, 0.0f, -K.y * htilde.y);
+            if (kMag > 0.0001f)
+                displacement += K / kMag * htilde.y;
+        }
+    }
+
+    normal = float3(-normal.x, 1.0f, -normal.z);
+    normal = normalize(normal);
+    
+    _HeightTex[id.xy] = float4(h.x, _Lambda * displacement, 0.0f) * 100;
+    _NormalTex[id.xy] = float4(normal, 0.0f);
+}
+
+/* [numthreads(8,8,1)]
 void CalculateHeight (uint3 id : SV_DispatchThreadID){
-    float heightSum = 0;
-    float2 normal = float2(0,0);
+    float heightSum = 0.0f;
+    float2 normal = float2(0.0f,0.0f);
     for (uint i = 0; i < _NumOfSines; i++){
         for (uint j = 0; j < _NumOfSines; j++){
             float2 curWavePos = float2(i,j);
             float frequency = length(curWavePos);
             
             // direction = from middle of texture to the current wave in spectrum
-            float2 dir = normalize(curWavePos-float2(_NumOfSines/2, _NumOfSines/2));
-            float amplitude = _SpectrumTex[uint2(i,j)];
-            float val = dot(float2(id.xy), dir);
-            heightSum += max(0, amplitude * sin(val * frequency + _Time));
+            float2 dir = curWavePos - float2(_NumOfSines/2, _NumOfSines/2);
+            //float amplitude = _SpectrumTex[uint2(i,j)];
+            float val = dot(float2(id.xy - _NumOfSines/2), dir);
 
-            float dx = frequency * amplitude * dir.x * cos(val * frequency + _Time);
-            dx = max(0,dx);
-            float dy = frequency * amplitude * dir.y * cos(val * frequency + _Time);
-            dy = max(0,dy);
-            normal = normal + float2(dx,dy);
+            float2 c = EulerFormula(val); // cos(val), sin(val)
+
+            float2 htilde = ComplexMult(_SpectrumTex[uint2(i,j)], c);
+
+            heightSum += htilde.x;
+
+            //float dx = frequency * amplitude * dir.x * cos(val * frequency + _Time);
+            //float dx = frequency * amplitude * dir.x * cos(val * frequency + _Time);
+            //float dy = frequency * amplitude * dir.y * cos(val * frequency + _Time);
+            normal += float2(-dir.x * htilde.y, -dir.y * htilde.y);
+            //normal = float2(0,0);// normal + float2(dx,dy);
         }
     }
     //TODO remove this * 25
-    _HeightTex[id.xy] = heightSum * 25;
-    if (length(normal) <= 0){
-        _NormalTex[id.xy] = normalize(float4(0,1,0,0));
-    } else {
-        _NormalTex[id.xy] = normalize(float4(normal.x, 1.0f, normal.y, 0));
-    }
+    _HeightTex[id.xy] = heightSum;
+    _NormalTex[id.xy] = normalize(float4(normal.x,1,normal.y,0));
 
-}
+
+} */
 
 
 /* [numthreads(8,8,1)]
@@ -74,9 +127,13 @@ void CalculateHeight (uint3 id : SV_DispatchThreadID)
 
 
         normal = normal + float2(dx,dy);
+ 
+ 
         amplitude = amplitude * amplitudeMult;
+     
         frequency = frequency * frequencyMult;
     }
     _NormalTex[id.xy] = normalize(float4(normal.x, 1.0f, normal.y, 0));
+
     _HeightTex[id.xy] = heightSum;
 } */
