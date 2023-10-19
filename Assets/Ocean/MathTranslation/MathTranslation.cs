@@ -4,8 +4,7 @@ using UnityEngine;
 public class MathTranslation : MonoBehaviour
 {
     [SerializeField] private Transform mainLight;
-    [SerializeField] private int texSize = 128;//, numOfSines = 4;
-    [SerializeField] private float heightMult = 1;
+    [SerializeField] private int texSize = 128;
     [SerializeField] private RenderTexture heightTex;
     [SerializeField] private RenderTexture normalTex;
     [SerializeField] public Material material;
@@ -24,15 +23,13 @@ public class MathTranslation : MonoBehaviour
             enableRandomWrite = true
         };
         
-        //material.SetTexture("_HeightMap", heightTex);
-        //material.SetTexture("_NormalMap", normalTex);
 
     }
 
     // Update is called once per frame
     void Update()
     {
-        //SetMaterialVariables();
+        SetMaterialVariables();
         SetCSVariables();
         mathShader.Dispatch(0, texSize/8, texSize/8, 1);
     }
@@ -45,15 +42,16 @@ public class MathTranslation : MonoBehaviour
         //mathShader.SetTexture(0, Shader.PropertyToID("_SpectrumTex"), spectrumGen.spectrumTexture);
         //mathShader.SetInt(Shader.PropertyToID("_NumOfSines"), numOfSines);
         mathShader.SetInt(Shader.PropertyToID("N"), texSize);
-        mathShader.SetFloat(Shader.PropertyToID("_Time"), Time.fixedTime);
         mathShader.SetFloat(Shader.PropertyToID("len"), len);
         mathShader.SetVector(Shader.PropertyToID("wind"), wind);
+        mathShader.SetFloat(Shader.PropertyToID("_Time"), Time.fixedTime);
     }
 
     void SetMaterialVariables(){
+        material.SetTexture("_HeightMap", heightTex);
+        //material.SetTexture("_NormalMap", normalTex);
         Vector3 lightDir = mainLight.forward.normalized;
         lightDir.y = -lightDir.y;
         material.SetVector("_SunDirection", lightDir);
-        material.SetFloat("_HeightMult", heightMult);
     }
 }

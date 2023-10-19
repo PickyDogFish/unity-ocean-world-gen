@@ -9,8 +9,7 @@ RWTexture2D<float4> _HeightTex;
 static const float PI = 3.14f;
 static const float g = 9.81;
 static const float A = 0.1;
-int N = 128; //fft size
-float NekiTest = 128.0f;
+uint N = 128; //fft size
 float len = 128.0f; //length of mesh
 float2 wind = float2(25,7);
 float _Time = 0.3;
@@ -63,10 +62,10 @@ float2 complexMultiply(float2 a, float2 b){
     return float2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
 }
 
-float2 htilde(float t, int n_prime, int m_prime){
+float2 htilde(float t, uint n_prime, uint m_prime){
     float2 ht0 = complexMultiply(htilde0(n_prime, m_prime), euler(dispersion(n_prime, m_prime) * t));
-    int modn = (n_prime - N) % N;
-    int modm = (m_prime - N) % N;
+    uint modn = (n_prime - N) % N;
+    uint modm = (m_prime - N) % N;
     float2 ht01 = complexMultiply(htilde0(modn, modm), euler(-dispersion(n_prime, m_prime) * t));
     ht01.y = -ht01.y;
     return ht0 + ht01;
@@ -79,15 +78,18 @@ float2 htilde(float t, int n_prime, int m_prime){
 void DoMath(uint3 id : SV_DispatchThreadID)
 {
     float h = 0.0f;
-    for (int i = 0; i < N; i++){
-        for (int j = 0; j < N; j++){
-            float2 htild = htilde(_Time, i, j);
-            float2 hxt = complexMultiply(htild, euler(dot(float2(i,j), id.xy)));
-            h += max(0,hxt.x);
+    for (uint i = 0; i < N; i++){
+        for (uint j = 0; j < N; j++){
+            //TODO remove this time multiplier
+            float2 htild = htilde(_Time/10000.0f, i, j);
+            float2 k = (float2(i, j) - float2(N/2.0f, N/2.0f)) * PI / len;
+            float2 hxt = complexMultiply(htild, euler(dot(k, id.xy)));
+
+            h += hxt.x;
         }
     }
 
     //_HeightTex[id.xy] = phillips(-id.x,-id.y);//float4(h,1,1,1);
-    _HeightTex[id.xy] = float4(htilde(_Time, id.x,id.y),0,0);
-    //_HeightTex[id.xy] = float4(h,1,1,1);
+    //_HeightTex[id.xy] = float4(htilde(_Time, id.x,id.y),0,0);
+    _HeightTex[id.xy] = float4(h,1,1,1);
 }

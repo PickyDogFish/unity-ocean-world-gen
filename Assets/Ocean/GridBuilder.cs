@@ -4,11 +4,18 @@ public class GridBuilder : MonoBehaviour
 {
 
     [SerializeField] private OceanParameters oceanParameters;
+    [SerializeField] private bool useOverride = false;
+    [SerializeField] private int sizeOverride = -1;
 
     private void Start()
     {
         Debug.Log("setting mesh");
-        GetComponentInChildren<MeshFilter>().mesh = BuildPlane(oceanParameters.size*8, oceanParameters.size*8, Vector3.zero);
+        //TODO check if MeshFilter component exists
+        if (useOverride){
+            GetComponentInChildren<MeshFilter>().mesh = BuildPlane(sizeOverride, sizeOverride, Vector3.zero);
+        } else {
+            GetComponentInChildren<MeshFilter>().mesh = BuildPlane(oceanParameters.size, oceanParameters.size, Vector3.zero);
+        }
         //GetComponentInChildren<MeshFilter>().mesh = BuildRing(128);
         //GetComponentInChildren<MeshFilter>().mesh = BuildClipMap(16, 3);
 

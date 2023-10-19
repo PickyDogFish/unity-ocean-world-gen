@@ -38,6 +38,7 @@ Shader "Custom/Water"
             SAMPLER(sampler_NormalMap);
 
             float3 _SunDirection;
+            float _HeightMult;
 
             struct Attributes{
                 float3 position : POSITION;
@@ -58,7 +59,7 @@ Shader "Custom/Water"
                 v2f output;
                 
                 float height = _HeightMap.SampleLevel(sampler_HeightMap, input.uv, 0.0f);
-                input.position += float3(5.0, height, 0.0);
+                input.position += float3(0.0, height * _HeightMult, 0.0);
                 VertexPositionInputs posInputs = GetVertexPositionInputs(input.position);
                 
                 float3 normal = _NormalMap.SampleLevel(sampler_NormalMap, input.uv, 0.0f);
