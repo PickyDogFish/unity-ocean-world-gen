@@ -4,15 +4,16 @@
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
 RWTexture2D<float4> _HeightTex;
+RWTexture2D<float4> _NormalTex;
 
 
 static const float PI = 3.14f;
 static const float g = 9.81;
-static const float A = 0.1;
-uint N = 128; //fft size
-float len = 128.0f; //length of mesh
-float2 wind = float2(25,7);
-float _Time = 0.3;
+static const float A = 0.08;
+uint N; //fft size
+float len; //length of mesh
+float2 wind;
+float _Time;
 
 float phillips(int n_prime, int m_prime) {
     float2 k = (float2(n_prime, m_prime) - float2(N/2.0f, N/2.0f)) * PI / len;
@@ -78,18 +79,21 @@ float2 htilde(float t, uint n_prime, uint m_prime){
 void DoMath(uint3 id : SV_DispatchThreadID)
 {
     float h = 0.0f;
+    float3 normal = float3(0,0,0);
     for (uint i = 0; i < N; i++){
         for (uint j = 0; j < N; j++){
             //TODO remove this time multiplier
             float2 htild = htilde(_Time/10000.0f, i, j);
             float2 k = (float2(i, j) - float2(N/2.0f, N/2.0f)) * PI / len;
-            float2 hxt = complexMultiply(htild, euler(dot(k, id.xy)));
 
+            float2 eulerkx = euler(dot(k, id.xy));
+            float2 hxt = complexMultiply(htild, eulerkx);
+
+            normal += float3(-k.x * hxt.y, 0.0f, -k.y * hxt.y);
             h += hxt.x;
         }
     }
 
-    //_HeightTex[id.xy] = phillips(-id.x,-id.y);//float4(h,1,1,1);
-    //_HeightTex[id.xy] = float4(htilde(_Time, id.x,id.y),0,0);
     _HeightTex[id.xy] = float4(h,1,1,1);
+    _NormalTex[id.xy] = normalize(float4(-normal.x, 1, -normal.z, 0));
 }

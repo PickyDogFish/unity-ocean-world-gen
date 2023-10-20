@@ -37,8 +37,7 @@ public class MathTranslation : MonoBehaviour
     void SetCSVariables(){
         //all called in update so changes in shader update live
         mathShader.SetTexture(0, Shader.PropertyToID("_HeightTex"), heightTex);
-        //mathShader.SetTexture(0, Shader.PropertyToID("_NormalTex"), normalTex);
-        //mathShader.SetInt(Shader.PropertyToID("_TexSize"), texSize);
+        mathShader.SetTexture(0, Shader.PropertyToID("_NormalTex"), normalTex);
         //mathShader.SetTexture(0, Shader.PropertyToID("_SpectrumTex"), spectrumGen.spectrumTexture);
         //mathShader.SetInt(Shader.PropertyToID("_NumOfSines"), numOfSines);
         mathShader.SetInt(Shader.PropertyToID("N"), texSize);
@@ -49,7 +48,7 @@ public class MathTranslation : MonoBehaviour
 
     void SetMaterialVariables(){
         material.SetTexture("_HeightMap", heightTex);
-        //material.SetTexture("_NormalMap", normalTex);
+        material.SetTexture("_NormalMap", normalTex);
         Vector3 lightDir = mainLight.forward.normalized;
         lightDir.y = -lightDir.y;
         material.SetVector("_SunDirection", lightDir);

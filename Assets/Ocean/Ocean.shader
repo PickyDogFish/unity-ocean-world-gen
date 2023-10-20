@@ -6,7 +6,7 @@ Shader "Custom/Water"
     Properties
     {
         [HeightMap] _HeightMap("Height Map", 2D) = "white"
-        [NormalMap] _NormalMap("Normal Map", 2D) = "green"
+        _NormalMap("Normal Map", 2D) = "green"
         _HeightMult("Height Multiplier", float) = 1
     }
 
@@ -51,7 +51,6 @@ Shader "Custom/Water"
                 float2 uv: TEXCOORD0;
                 float3 positionWS : TEXCOORD1;
                 float3 normalWS : TEXCOORD2;
-                //DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 8);
             };
 
 
@@ -73,15 +72,16 @@ Shader "Custom/Water"
             }
 
             float4 frag(v2f input) : SV_TARGET{
-                float3 diffuseColor = float3(0.1,0.3,0.8);
+                float3 diffuseColor = float3(0.1,0.2,0.8);
                 float4 specularColor = float4(diffuseColor, 1);
-                float3 ambientColor = float3(0.1,0.1,0.1);
+                float3 ambientColor = diffuseColor;
 
                 float3 viewDir = normalize(_WorldSpaceCameraPos - input.positionWS);
-                float3 lambert = diffuseColor * dot(_SunDirection, input.normalWS);
+                //saturate because dot() is negative half the time
+                float3 lambert = diffuseColor * saturate(dot(_MainLightPosition, input.normalWS));
                 float3 specular = LightingSpecular(_MainLightColor.rgb, _MainLightPosition, input.normalWS, viewDir, specularColor, 25);
                 float3 finalColor = ambientColor + lambert + specular;
-                return float4(finalColor, 1);
+                return saturate(float4(finalColor, 0));
             }
             ENDHLSL
         }
