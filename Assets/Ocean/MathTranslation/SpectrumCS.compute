@@ -44,7 +44,9 @@ void InitialSpectrum (uint3 id : SV_DispatchThreadID)
 
     random = _NoiseTex[uint2(modn,modm)];
     spectrum = phillips(modn, modm);
+
     float2 htilde0Conj = random * sqrt(spectrum/2.0f);
+    htilde0Conj.y = -htilde0Conj.y;
 
     _InitialSpectrumTex[id.xy] = float4(htilde0, htilde0Conj);
 }

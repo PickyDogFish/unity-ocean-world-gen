@@ -12,7 +12,7 @@ public class MathTranslation : MonoBehaviour
     
     
     [Header("Other settings")]
-    [SerializeField] private int texSize = 128;
+    [SerializeField] private int FFTSize = 128;
     [SerializeField] private float len = 128;
     [SerializeField] private ComputeShader mathShader;
 
@@ -28,24 +28,25 @@ public class MathTranslation : MonoBehaviour
     void Start()
     {
 
-        heightTex = new RenderTexture(texSize, texSize, 0, RenderTextureFormat.RFloat)
-        {
-            enableRandomWrite = true
-        };
-        normalTex = new RenderTexture(texSize, texSize, 0, RenderTextureFormat.ARGBFloat)
-        {
-            enableRandomWrite = true
-        };
-        displacementTex = new RenderTexture(texSize, texSize, 0, RenderTextureFormat.RGFloat)
-        {
-            enableRandomWrite = true
-        };
-        initialSpectrumTex = new RenderTexture(texSize, texSize, 0, RenderTextureFormat.ARGBFloat)
+        initialSpectrumTex = new RenderTexture(FFTSize, FFTSize, 0, RenderTextureFormat.ARGBFloat)
         {
             enableRandomWrite = true
         };
         
-        gaussianNoise = GaussianNoise.GenerateTex(texSize);
+        heightTex = new RenderTexture(FFTSize, FFTSize, 0, RenderTextureFormat.RFloat)
+        {
+            enableRandomWrite = true
+        };
+        normalTex = new RenderTexture(FFTSize, FFTSize, 0, RenderTextureFormat.ARGBFloat)
+        {
+            enableRandomWrite = true
+        };
+        displacementTex = new RenderTexture(FFTSize, FFTSize, 0, RenderTextureFormat.RGFloat)
+        {
+            enableRandomWrite = true
+        };
+        
+        gaussianNoise = GaussianNoise.GenerateTex(FFTSize);
         CalculateInitialSpectrum();
     }
 
@@ -53,10 +54,10 @@ public class MathTranslation : MonoBehaviour
         spectrumShader.SetTexture(0, Shader.PropertyToID("_NoiseTex"), gaussianNoise);
         spectrumShader.SetTexture(0, Shader.PropertyToID("_InitialSpectrumTex"), initialSpectrumTex);
         spectrumShader.SetFloat("_A", phillipsA);
-        spectrumShader.SetInt(Shader.PropertyToID("_Size"), texSize);
+        spectrumShader.SetInt(Shader.PropertyToID("_Size"), FFTSize);
         spectrumShader.SetFloat(Shader.PropertyToID("_Length"), len);
         spectrumShader.SetVector(Shader.PropertyToID("_Wind"), wind);
-        spectrumShader.Dispatch(0, texSize/8, texSize/8, 1);
+        spectrumShader.Dispatch(0, FFTSize/8, FFTSize/8, 1);
     }
 
     // Update is called once per frame
@@ -64,7 +65,7 @@ public class MathTranslation : MonoBehaviour
     {
         SetMaterialVariables();
         SetCSVariables();
-        mathShader.Dispatch(0, texSize/8, texSize/8, 1);
+        mathShader.Dispatch(0, FFTSize/8, FFTSize/8, 1);
     }
 
     void SetCSVariables(){
@@ -72,14 +73,10 @@ public class MathTranslation : MonoBehaviour
         mathShader.SetTexture(0, Shader.PropertyToID("_HeightTex"), heightTex);
         mathShader.SetTexture(0, Shader.PropertyToID("_NormalTex"), normalTex);
         mathShader.SetTexture(0, Shader.PropertyToID("_DisplacementTex"), displacementTex);
-        mathShader.SetTexture(0, Shader.PropertyToID("_NoiseTex"), gaussianNoise);
-        //mathShader.SetTexture(0, Shader.PropertyToID("_SpectrumTex"), spectrumGen.spectrumTexture);
-        //mathShader.SetInt(Shader.PropertyToID("_NumOfSines"), numOfSines);
-        mathShader.SetInt(Shader.PropertyToID("_N"), texSize);
+        mathShader.SetTexture(0, Shader.PropertyToID("_InitialSpectrumTex"), initialSpectrumTex);
+        mathShader.SetInt(Shader.PropertyToID("_N"), FFTSize);
         mathShader.SetFloat(Shader.PropertyToID("_Length"), len);
-        mathShader.SetVector(Shader.PropertyToID("_Wind"), wind);
         mathShader.SetFloat(Shader.PropertyToID("_Time"), Time.fixedTime);
-        mathShader.SetFloat(Shader.PropertyToID("_A"), phillipsA);
     }
 
     void SetMaterialVariables(){

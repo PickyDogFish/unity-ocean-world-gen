@@ -6,56 +6,21 @@
 RWTexture2D<float4> _HeightTex;
 RWTexture2D<float4> _NormalTex;
 RWTexture2D<float4> _DisplacementTex;
-Texture2D<float2> _NoiseTex;
+Texture2D<float4> _InitialSpectrumTex;
 
 
 static const float PI = 3.14f;
-static const float g = 9.81;
-float _A = 0.08;
+static const float g = 9.81f;
 uint _N; //fft size
 float _Length; //length of mesh
-float2 _Wind;
 float _Time;
 
-float phillips(int n_prime, int m_prime) {
-    float2 k = (float2(n_prime, m_prime) - float2(_N/2.0f, _N/2.0f)) * PI / _Length;
-    float k_length = length(k);
-    if (k_length < 0.000001) return 0.0;
- 
-    float k_length2 = k_length * k_length;
-    float k_length4 = k_length2 * k_length2;
- 
-    float k_dot_w = dot(normalize(k), normalize(_Wind));
-    float k_dot_w2 = k_dot_w * k_dot_w;
- 
-    float w_length = length(_Wind);
-    float L = w_length * w_length / g;
-    float L2 = L * L;
-     
-    float damping = 0.001;
-    float l2 = L2 * damping * damping;
- 
-    return _A * exp(-1.0 / (k_length2 * L2)) / k_length4 * k_dot_w2 * exp(-k_length2 * l2);
-}
 
 float dispersion(int n_prime, int m_prime) {
     float w_0 = 2.0 * PI / 200.0;
     float kx = PI * (2 * n_prime - _N) / _Length;
     float kz = PI * (2 * m_prime - _N) / _Length;
     return floor(sqrt(g * sqrt(kx * kx + kz * kz)) / w_0) * w_0;
-}
-
-float2 rand_22(float2 uv) {
-    float noiseX = (frac(sin(dot(uv, float2(12.9898,78.233) * 2.0)) * 43758.5453));
-    float noiseY = sqrt(1 - noiseX * noiseX);
-    return float2(noiseX, noiseY);
-}
-
-
-float2 htilde0(int n_prime, int m_prime){
-    //float2 random = rand_22(float2(n_prime/float(_N), m_prime/float(_N)));
-    float2 random = _NoiseTex[uint2(n_prime, m_prime)].xy;
-    return random * sqrt(phillips(n_prime, m_prime)/2.0f);
 }
 
 float2 euler(float x){
@@ -67,12 +32,9 @@ float2 complexMultiply(float2 a, float2 b){
 }
 
 float2 htilde(float t, uint n_prime, uint m_prime){
-    float2 ht0 = complexMultiply(htilde0(n_prime, m_prime), euler(dispersion(n_prime, m_prime) * t));
-    //remapping -k to wrap around
-    uint modn = (n_prime - _N) % _N;
-    uint modm = (m_prime - _N) % _N;
-    float2 ht01 = complexMultiply(htilde0(modn, modm), euler(-dispersion(n_prime, m_prime) * t));
-    ht01.y = -ht01.y;
+    float4 initialSpectrumVal = _InitialSpectrumTex[uint2(n_prime, m_prime)];
+    float2 ht0 = complexMultiply(initialSpectrumVal.xy, euler(dispersion(n_prime, m_prime) * t));
+    float2 ht01 = complexMultiply(initialSpectrumVal.zw, euler(-dispersion(n_prime, m_prime) * t));
     return ht0 + ht01;
 }
 
