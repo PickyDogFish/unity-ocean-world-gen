@@ -1,0 +1,50 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel InitialSpectrum
+
+static const float PI = 3.14f;
+static const float g = 9.81f;
+
+Texture2D<float2> _NoiseTex;
+RWTexture2D<float4> _InitialSpectrumTex;
+float _A = 0.08;
+uint _Size;
+float _Length;
+float2 _Wind;
+
+float phillips(int n_prime, int m_prime) {
+    float2 k = (float2(n_prime, m_prime) - float2(_Size/2.0f, _Size/2.0f)) * PI / _Length;
+    float k_length = length(k);
+    if (k_length < 0.000001) return 0.0;
+ 
+    float k_length2 = k_length * k_length;
+    float k_length4 = k_length2 * k_length2;
+ 
+    float k_dot_w = dot(normalize(k), normalize(_Wind));
+    float k_dot_w2 = k_dot_w * k_dot_w;
+ 
+    float w_length = length(_Wind);
+    float L = w_length * w_length / g;
+    float L2 = L * L;
+     
+    float damping = 0.001;
+    float l2 = L2 * damping * damping;
+ 
+    return _A * exp(-1.0 / (k_length2 * L2)) / k_length4 * k_dot_w2 * exp(-k_length2 * l2);
+}
+
+[numthreads(8,8,1)]
+void InitialSpectrum (uint3 id : SV_DispatchThreadID)
+{
+    float2 random = _NoiseTex[id.xy];
+    float spectrum = phillips(id.x, id.y);
+    float2 htilde0 = random * sqrt(spectrum/2.0f);
+
+    uint modn = (id.x - _Size) % _Size;
+    uint modm = (id.y - _Size) % _Size;
+
+    random = _NoiseTex[uint2(modn,modm)];
+    spectrum = phillips(modn, modm);
+    float2 htilde0Conj = random * sqrt(spectrum/2.0f);
+
+    _InitialSpectrumTex[id.xy] = float4(htilde0, htilde0Conj);
+}

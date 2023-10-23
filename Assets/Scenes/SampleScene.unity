@@ -542,14 +542,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 824ab9686c31aa2439a831a433d2973b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mainLight: {fileID: 410087041}
-  texSize: 64
-  heightTex: {fileID: 0}
-  normalTex: {fileID: 0}
-  mathShader: {fileID: 7200000, guid: 1d31b9e8a69fcda4f828a6922569414b, type: 3}
-  len: 256
+  spectrumShader: {fileID: 7200000, guid: 05d9cb74ab4750d42a4da25cffde0fbe, type: 3}
+  initialSpectrumTex: {fileID: 0}
   wind: {x: 5, y: 2}
   phillipsA: 0.001
+  texSize: 64
+  len: 256
+  mathShader: {fileID: 7200000, guid: 1d31b9e8a69fcda4f828a6922569414b, type: 3}
+  heightTex: {fileID: 0}
+  normalTex: {fileID: 0}
+  displacementTex: {fileID: 0}
   material: {fileID: 2100000, guid: 0ec0ee098347dd34193abfa2ca74b962, type: 2}
 --- !u!4 &462530887
 Transform:
