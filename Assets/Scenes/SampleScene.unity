@@ -546,10 +546,11 @@ MonoBehaviour:
   texSize: 64
   heightTex: {fileID: 0}
   normalTex: {fileID: 0}
-  material: {fileID: 2100000, guid: 0ec0ee098347dd34193abfa2ca74b962, type: 2}
   mathShader: {fileID: 7200000, guid: 1d31b9e8a69fcda4f828a6922569414b, type: 3}
-  len: 128
+  len: 256
   wind: {x: 5, y: 2}
+  phillipsA: 0.001
+  material: {fileID: 2100000, guid: 0ec0ee098347dd34193abfa2ca74b962, type: 2}
 --- !u!4 &462530887
 Transform:
   m_ObjectHideFlags: 0
@@ -579,7 +580,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   oceanParameters: {fileID: 0}
   useOverride: 1
-  sizeOverride: 128
+  sizeOverride: 256
 --- !u!23 &462530889
 MeshRenderer:
   m_ObjectHideFlags: 0

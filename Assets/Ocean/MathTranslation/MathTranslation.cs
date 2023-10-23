@@ -7,10 +7,14 @@ public class MathTranslation : MonoBehaviour
     [SerializeField] private int texSize = 128;
     [SerializeField] private RenderTexture heightTex;
     [SerializeField] private RenderTexture normalTex;
-    [SerializeField] public Material material;
+    [SerializeField] private RenderTexture displacementTex;
     [SerializeField] private ComputeShader mathShader;
     [SerializeField] private float len = 128;
     [SerializeField] private Vector2 wind = new Vector2(5,2);
+    [SerializeField] private float phillipsA = 0.1f;
+    private Texture2D gaussianNoise;
+    
+    [SerializeField] public Material material;
     void Start()
     {
 
@@ -22,7 +26,12 @@ public class MathTranslation : MonoBehaviour
         {
             enableRandomWrite = true
         };
+        displacementTex = new RenderTexture(texSize, texSize, 0, RenderTextureFormat.RGFloat)
+        {
+            enableRandomWrite = true
+        };
         
+        gaussianNoise = GaussianNoise.GenerateTex(texSize);
 
     }
 
@@ -38,19 +47,20 @@ public class MathTranslation : MonoBehaviour
         //all called in update so changes in shader update live
         mathShader.SetTexture(0, Shader.PropertyToID("_HeightTex"), heightTex);
         mathShader.SetTexture(0, Shader.PropertyToID("_NormalTex"), normalTex);
+        mathShader.SetTexture(0, Shader.PropertyToID("_DisplacementTex"), displacementTex);
+        mathShader.SetTexture(0, Shader.PropertyToID("_NoiseTex"), gaussianNoise);
         //mathShader.SetTexture(0, Shader.PropertyToID("_SpectrumTex"), spectrumGen.spectrumTexture);
         //mathShader.SetInt(Shader.PropertyToID("_NumOfSines"), numOfSines);
-        mathShader.SetInt(Shader.PropertyToID("N"), texSize);
-        mathShader.SetFloat(Shader.PropertyToID("len"), len);
-        mathShader.SetVector(Shader.PropertyToID("wind"), wind);
+        mathShader.SetInt(Shader.PropertyToID("_N"), texSize);
+        mathShader.SetFloat(Shader.PropertyToID("_Length"), len);
+        mathShader.SetVector(Shader.PropertyToID("_Wind"), wind);
         mathShader.SetFloat(Shader.PropertyToID("_Time"), Time.fixedTime);
+        mathShader.SetFloat(Shader.PropertyToID("_A"), phillipsA);
     }
 
     void SetMaterialVariables(){
         material.SetTexture("_HeightMap", heightTex);
         material.SetTexture("_NormalMap", normalTex);
-        Vector3 lightDir = mainLight.forward.normalized;
-        lightDir.y = -lightDir.y;
-        material.SetVector("_SunDirection", lightDir);
+        material.SetTexture("_DisplacementMap", displacementTex);
     }
 }

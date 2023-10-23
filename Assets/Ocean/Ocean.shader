@@ -1,14 +1,6 @@
 // This shader fills the mesh shape with a color predefined in the code.
 Shader "Custom/Water"
 {
-    // The properties block of the Unity shader. In this example this block is empty
-    // because the output color is predefined in the fragment shader code.
-    Properties
-    {
-        [HeightMap] _HeightMap("Height Map", 2D) = "white"
-        _NormalMap("Normal Map", 2D) = "green"
-        _HeightMult("Height Multiplier", float) = 1
-    }
 
     // The SubShader block containing the Shader code.
     SubShader
@@ -37,8 +29,8 @@ Shader "Custom/Water"
             TEXTURE2D(_NormalMap);
             SAMPLER(sampler_NormalMap);
 
-            float3 _SunDirection;
-            float _HeightMult;
+            //TEXTURE2D(_DisplacementMap);
+            //SAMPLER(sampler_DisplacementMap);
 
             struct Attributes{
                 float3 position : POSITION;
@@ -58,7 +50,8 @@ Shader "Custom/Water"
                 v2f output;
                 
                 float height = _HeightMap.SampleLevel(sampler_HeightMap, input.uv, 0.0f);
-                input.position += float3(0.0, height * _HeightMult, 0.0);
+                //float2 displacement = _DisplacementMap.SampleLevel(sampler_DisplacementMap, input.uv, 0.0f).xy;
+                input.position += float3(0, height, 0);
                 VertexPositionInputs posInputs = GetVertexPositionInputs(input.position);
                 
                 float3 normal = _NormalMap.SampleLevel(sampler_NormalMap, input.uv, 0.0f);
