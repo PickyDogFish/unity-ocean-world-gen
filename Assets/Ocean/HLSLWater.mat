@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: HSLSWater
+  m_Name: HLSLWater
   m_Shader: {fileID: 4800000, guid: 7a938a4f370063340b8f117e9735a118, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
@@ -117,7 +117,7 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _HeightMult: 0.02
+    - _HeightMult: 1
     - _MatCapBlend: 0.377
     - _Metallic: 0
     - _OcclusionStrength: 1
