@@ -3,9 +3,15 @@ using UnityEngine;
 
 public class MathTranslation : MonoBehaviour
 {
+    public enum SpectrumType{
+        Phillips = 0,
+        PiersonMoskowitz = 1
+    }
+
     [Header("Initial spectrum settings")]
     [SerializeField] private ComputeShader spectrumShader;
     [SerializeField] private RenderTexture initialSpectrumTex;
+    [SerializeField] private SpectrumType spectrumType;
     [SerializeField] private Vector2 wind = new Vector2(5,2);
     [SerializeField] private float phillipsA = 0.1f;
     
@@ -48,16 +54,24 @@ public class MathTranslation : MonoBehaviour
         
         gaussianNoise = GaussianNoise.GenerateTex(FFTSize);
         CalculateInitialSpectrum();
+        CalculateConjugatedSpectrum();
     }
 
     void CalculateInitialSpectrum(){
         spectrumShader.SetTexture(0, Shader.PropertyToID("_NoiseTex"), gaussianNoise);
         spectrumShader.SetTexture(0, Shader.PropertyToID("_InitialSpectrumTex"), initialSpectrumTex);
         spectrumShader.SetFloat("_A", phillipsA);
-        spectrumShader.SetInt(Shader.PropertyToID("_Size"), FFTSize);
         spectrumShader.SetFloat(Shader.PropertyToID("_Length"), len);
+        spectrumShader.SetInt(Shader.PropertyToID("_Size"), FFTSize);
+        spectrumShader.SetInt(Shader.PropertyToID("_SpectrumType"), (int) spectrumType);
         spectrumShader.SetVector(Shader.PropertyToID("_Wind"), wind);
         spectrumShader.Dispatch(0, FFTSize/8, FFTSize/8, 1);
+    }
+
+    void CalculateConjugatedSpectrum(){
+        spectrumShader.SetTexture(1, Shader.PropertyToID("_InitialSpectrumTex"), initialSpectrumTex);
+        spectrumShader.SetInt(Shader.PropertyToID("_Size"), FFTSize);
+        spectrumShader.Dispatch(1, FFTSize/8, FFTSize/8, 1);
     }
 
     // Update is called once per frame

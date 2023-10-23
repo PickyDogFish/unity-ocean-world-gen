@@ -44,9 +44,6 @@ float2 SamplePhillips(float2 k, float2 rand) {
     return (1.0f / sqrt(2.0f)) * rand * sqrt(PhillipsSpectrum(k));
 }
 
-//Directional spectrum https://journals.ametsoc.org/view/journals/phoc/28/3/1520-0485_1998_028_0495_ootdso_2.0.co_2.xml
-
-
 
 float ShortWavesFade(float kLength) {
     float shortWavesFade = 1.0f;

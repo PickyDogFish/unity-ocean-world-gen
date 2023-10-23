@@ -1,8 +1,11 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel InitialSpectrum
+#pragma kernel ConjugatedSpectrum
 
 static const float PI = 3.14f;
 static const float g = 9.81f;
+static const float sigmaOverRho = 0.074e-3;
+
 
 Texture2D<float2> _NoiseTex;
 RWTexture2D<float4> _InitialSpectrumTex;
@@ -10,6 +13,8 @@ float _A = 0.08;
 uint _Size;
 float _Length;
 float2 _Wind;
+
+uint _SpectrumType;
 
 float phillips(int n_prime, int m_prime) {
     float2 k = (float2(n_prime, m_prime) - float2(_Size/2.0f, _Size/2.0f)) * PI / _Length;
@@ -35,18 +40,22 @@ float phillips(int n_prime, int m_prime) {
 [numthreads(8,8,1)]
 void InitialSpectrum (uint3 id : SV_DispatchThreadID)
 {
+    uint modn = (id.x - _Size) % _Size;
+    uint modm = (id.y - _Size) % _Size;
     float2 random = _NoiseTex[id.xy];
     float spectrum = phillips(id.x, id.y);
     float2 htilde0 = random * sqrt(spectrum/2.0f);
+    _InitialSpectrumTex[id.xy] = float4(htilde0, 0,0);
+}
 
+[numthreads(8,8,1)]
+void ConjugatedSpectrum (uint3 id : SV_DispatchThreadID){
     uint modn = (id.x - _Size) % _Size;
     uint modm = (id.y - _Size) % _Size;
 
-    random = _NoiseTex[uint2(modn,modm)];
-    spectrum = phillips(modn, modm);
+    float4 initialValue =  _InitialSpectrumTex[id.xy];
+    float4 initialValueConj =  _InitialSpectrumTex[uint2(modn, modm)];
+    initialValueConj.y = - initialValueConj.y;
 
-    float2 htilde0Conj = random * sqrt(spectrum/2.0f);
-    htilde0Conj.y = -htilde0Conj.y;
-
-    _InitialSpectrumTex[id.xy] = float4(htilde0, htilde0Conj);
+    _InitialSpectrumTex[id.xy] = float4(initialValue.xy, initialValueConj.xy);
 }
