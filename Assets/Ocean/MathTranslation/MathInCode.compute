@@ -19,9 +19,8 @@ float _RepeatTime;
 
 float dispersion(int n_prime, int m_prime) {
     float w_0 = 2.0f * PI /_RepeatTime;
-    float kx = PI * (2 * n_prime - _N) / _Length;
-    float kz = PI * (2 * m_prime - _N) / _Length;
-    return floor(sqrt(g * length(float2(kx,kz))) / w_0) * w_0;
+    float2 k = (float2(n_prime, m_prime) - float2(_N/2.0f, _N/2.0f)) * PI / _Length;
+    return floor(sqrt(g * length(k)) / w_0) * w_0;
 }
 
 float2 euler(float x){

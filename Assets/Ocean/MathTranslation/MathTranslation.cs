@@ -22,6 +22,7 @@ public class MathTranslation : MonoBehaviour
     [SerializeField] private int FFTSize = 128;
     [SerializeField] private float len = 128;
     [SerializeField] private float repeatTime = 200;
+    [Range(0.1f, 2.0f)][SerializeField] private float speed = 1;
     [SerializeField] private ComputeShader mathShader;
 
     
@@ -96,7 +97,7 @@ public class MathTranslation : MonoBehaviour
         mathShader.SetTexture(0, Shader.PropertyToID("_InitialSpectrumTex"), initialSpectrumTex);
         mathShader.SetInt(Shader.PropertyToID("_N"), FFTSize);
         mathShader.SetFloat(Shader.PropertyToID("_Length"), len);
-        mathShader.SetFloat(Shader.PropertyToID("_Time"), Time.time);
+        mathShader.SetFloat(Shader.PropertyToID("_Time"), Time.time * speed);
         mathShader.SetFloat(Shader.PropertyToID("_RepeatTime"), repeatTime);
     }
 
