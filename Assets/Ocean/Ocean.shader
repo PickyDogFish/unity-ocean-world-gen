@@ -29,8 +29,8 @@ Shader "Custom/Water"
             TEXTURE2D(_NormalMap);
             SAMPLER(sampler_NormalMap);
 
-            //TEXTURE2D(_DisplacementMap);
-            //SAMPLER(sampler_DisplacementMap);
+            TEXTURE2D(_DisplacementMap);
+            SAMPLER(sampler_DisplacementMap);
 
             struct Attributes{
                 float3 position : POSITION;
@@ -50,8 +50,8 @@ Shader "Custom/Water"
                 v2f output;
                 
                 float height = _HeightMap.SampleLevel(sampler_HeightMap, input.uv, 0.0f);
-                //float2 displacement = _DisplacementMap.SampleLevel(sampler_DisplacementMap, input.uv, 0.0f).xy;
-                input.position += float3(0, height, 0);
+                float2 displacement = _DisplacementMap.SampleLevel(sampler_DisplacementMap, input.uv, 0.0f).xy;
+                input.position += float3(displacement.x, height, displacement.y);
                 VertexPositionInputs posInputs = GetVertexPositionInputs(input.position);
                 
                 float3 normal = _NormalMap.SampleLevel(sampler_NormalMap, input.uv, 0.0f);

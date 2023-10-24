@@ -545,7 +545,7 @@ MonoBehaviour:
   spectrumShader: {fileID: 7200000, guid: 05d9cb74ab4750d42a4da25cffde0fbe, type: 3}
   initialSpectrumTex: {fileID: 0}
   spectrumType: 0
-  wind: {x: 13, y: 3}
+  wind: {x: 5, y: 3}
   phillipsA: 0.001
   FFTSize: 64
   len: 256

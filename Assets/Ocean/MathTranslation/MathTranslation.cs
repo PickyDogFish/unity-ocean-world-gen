@@ -14,12 +14,14 @@ public class MathTranslation : MonoBehaviour
     [SerializeField] private SpectrumType spectrumType;
     [SerializeField] private Vector2 wind = new Vector2(5,2);
     [SerializeField] private float phillipsA = 0.1f;
+    [SerializeField] private bool updateSpectrum = false;
     
     
     
     [Header("Other settings")]
     [SerializeField] private int FFTSize = 128;
     [SerializeField] private float len = 128;
+    [SerializeField] private float repeatTime = 200;
     [SerializeField] private ComputeShader mathShader;
 
     
@@ -77,6 +79,10 @@ public class MathTranslation : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (updateSpectrum){
+            CalculateInitialSpectrum();
+            CalculateConjugatedSpectrum();
+        }
         SetMaterialVariables();
         SetCSVariables();
         mathShader.Dispatch(0, FFTSize/8, FFTSize/8, 1);
@@ -90,7 +96,8 @@ public class MathTranslation : MonoBehaviour
         mathShader.SetTexture(0, Shader.PropertyToID("_InitialSpectrumTex"), initialSpectrumTex);
         mathShader.SetInt(Shader.PropertyToID("_N"), FFTSize);
         mathShader.SetFloat(Shader.PropertyToID("_Length"), len);
-        mathShader.SetFloat(Shader.PropertyToID("_Time"), Time.fixedTime);
+        mathShader.SetFloat(Shader.PropertyToID("_Time"), Time.time);
+        mathShader.SetFloat(Shader.PropertyToID("_RepeatTime"), repeatTime);
     }
 
     void SetMaterialVariables(){
