@@ -1,27 +1,18 @@
 // Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel DoMath
+#pragma kernel DoDFT
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
 RWTexture2D<float4> _HeightTex;
 RWTexture2D<float4> _NormalTex;
 RWTexture2D<float4> _DisplacementTex;
-Texture2D<float4> _InitialSpectrumTex;
+Texture2D<float4> _TimeSpectrumTex;
 
 
 static const float PI = 3.14f;
 static const float g = 9.81f;
 uint _N; //fft size
 float _Length; //length of mesh
-float _Time;
-float _RepeatTime;
-
-
-float dispersion(int n_prime, int m_prime) {
-    float w_0 = 2.0f * PI /_RepeatTime;
-    float2 k = (float2(n_prime, m_prime) - float2(_N/2.0f, _N/2.0f)) * PI / _Length;
-    return floor(sqrt(g * length(k)) / w_0) * w_0;
-}
 
 float2 euler(float x){
     return float2(cos(x), sin(x));
@@ -31,18 +22,8 @@ float2 complexMultiply(float2 a, float2 b){
     return float2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
 }
 
-float2 htilde(float t, uint n_prime, uint m_prime){
-    float4 initialSpectrumVal = _InitialSpectrumTex[uint2(n_prime, m_prime)];
-    float2 ht0 = complexMultiply(initialSpectrumVal.xy, euler(dispersion(n_prime, m_prime) * t));
-    float2 ht01 = complexMultiply(initialSpectrumVal.zw, euler(-dispersion(n_prime, m_prime) * t));
-    return ht0 + ht01;
-}
-
-
-
-
 [numthreads(8,8,1)]
-void DoMath(uint3 id : SV_DispatchThreadID)
+void DoDFT(uint3 id : SV_DispatchThreadID)
 {
     float h = 0.0f;
     float3 normal = 0.0f;
@@ -50,7 +31,8 @@ void DoMath(uint3 id : SV_DispatchThreadID)
     for (uint i = 0; i < _N; i++){
         for (uint j = 0; j < _N; j++){
             //TODO remove this time multiplier
-            float2 htild = htilde(_Time, i, j);
+            float2 htild = _TimeSpectrumTex[uint2(i,j)].xy;
+
             float2 k = (float2(i, j) - float2(_N/2.0f, _N/2.0f)) * PI / _Length;
             float kLen = length(k);
 

@@ -1,7 +1,7 @@
 using OceanSimulation;
 using UnityEngine;
 
-public class MathTranslation : MonoBehaviour
+public class Water : MonoBehaviour
 {
     public enum SpectrumType{
         Phillips = 0,
@@ -9,8 +9,9 @@ public class MathTranslation : MonoBehaviour
     }
 
     [Header("Initial spectrum settings")]
-    [SerializeField] private ComputeShader spectrumShader;
+    [SerializeField] private ComputeShader spectrumCS;
     [SerializeField] private RenderTexture initialSpectrumTex;
+    [SerializeField] private RenderTexture timeSpectrumTex;
     [SerializeField] private SpectrumType spectrumType;
     [SerializeField] private Vector2 wind = new Vector2(5,2);
     [SerializeField] private float phillipsA = 0.1f;
@@ -23,7 +24,7 @@ public class MathTranslation : MonoBehaviour
     [SerializeField] private float len = 128;
     [SerializeField] private float repeatTime = 200;
     [Range(0.1f, 2.0f)][SerializeField] private float speed = 1;
-    [SerializeField] private ComputeShader mathShader;
+    [SerializeField] private ComputeShader fftWaterCS;
 
     
 
@@ -38,6 +39,10 @@ public class MathTranslation : MonoBehaviour
     {
 
         initialSpectrumTex = new RenderTexture(FFTSize, FFTSize, 0, RenderTextureFormat.ARGBFloat)
+        {
+            enableRandomWrite = true
+        };
+        timeSpectrumTex = new RenderTexture(FFTSize, FFTSize, 0, RenderTextureFormat.ARGBFloat)
         {
             enableRandomWrite = true
         };
@@ -61,20 +66,28 @@ public class MathTranslation : MonoBehaviour
     }
 
     void CalculateInitialSpectrum(){
-        spectrumShader.SetTexture(0, Shader.PropertyToID("_NoiseTex"), gaussianNoise);
-        spectrumShader.SetTexture(0, Shader.PropertyToID("_InitialSpectrumTex"), initialSpectrumTex);
-        spectrumShader.SetFloat("_A", phillipsA);
-        spectrumShader.SetFloat(Shader.PropertyToID("_Length"), len);
-        spectrumShader.SetInt(Shader.PropertyToID("_Size"), FFTSize);
-        spectrumShader.SetInt(Shader.PropertyToID("_SpectrumType"), (int) spectrumType);
-        spectrumShader.SetVector(Shader.PropertyToID("_Wind"), wind);
-        spectrumShader.Dispatch(0, FFTSize/8, FFTSize/8, 1);
+        spectrumCS.SetTexture(0, Shader.PropertyToID("_NoiseTex"), gaussianNoise);
+        spectrumCS.SetTexture(0, Shader.PropertyToID("_InitialSpectrumTex"), initialSpectrumTex);
+        spectrumCS.SetFloat("_A", phillipsA);
+        spectrumCS.SetFloat(Shader.PropertyToID("_Length"), len);
+        spectrumCS.SetInt(Shader.PropertyToID("_Size"), FFTSize);
+        spectrumCS.SetInt(Shader.PropertyToID("_SpectrumType"), (int) spectrumType);
+        spectrumCS.SetVector(Shader.PropertyToID("_Wind"), wind);
+        spectrumCS.Dispatch(0, FFTSize/8, FFTSize/8, 1);
     }
 
     void CalculateConjugatedSpectrum(){
-        spectrumShader.SetTexture(1, Shader.PropertyToID("_InitialSpectrumTex"), initialSpectrumTex);
-        spectrumShader.SetInt(Shader.PropertyToID("_Size"), FFTSize);
-        spectrumShader.Dispatch(1, FFTSize/8, FFTSize/8, 1);
+        spectrumCS.SetTexture(1, Shader.PropertyToID("_InitialSpectrumTex"), initialSpectrumTex);
+        spectrumCS.SetInt(Shader.PropertyToID("_Size"), FFTSize);
+        spectrumCS.Dispatch(1, FFTSize/8, FFTSize/8, 1);
+    }
+
+    void CalculateTimeSpectrum(){
+        spectrumCS.SetTexture(2, Shader.PropertyToID("_InitialSpectrumTex"), initialSpectrumTex);
+        spectrumCS.SetTexture(2, Shader.PropertyToID("_TimeSpectrumTex"), timeSpectrumTex);
+        spectrumCS.SetFloat(Shader.PropertyToID("_Time"), Time.time * speed);
+        spectrumCS.SetFloat(Shader.PropertyToID("_RepeatTime"), repeatTime);
+        spectrumCS.Dispatch(2, FFTSize/8, FFTSize/8, 1);
     }
 
     // Update is called once per frame
@@ -84,21 +97,20 @@ public class MathTranslation : MonoBehaviour
             CalculateInitialSpectrum();
             CalculateConjugatedSpectrum();
         }
+        CalculateTimeSpectrum();
         SetMaterialVariables();
         SetCSVariables();
-        mathShader.Dispatch(0, FFTSize/8, FFTSize/8, 1);
+        fftWaterCS.Dispatch(0, FFTSize/8, FFTSize/8, 1);
     }
 
     void SetCSVariables(){
         //all called in update so changes in shader update live
-        mathShader.SetTexture(0, Shader.PropertyToID("_HeightTex"), heightTex);
-        mathShader.SetTexture(0, Shader.PropertyToID("_NormalTex"), normalTex);
-        mathShader.SetTexture(0, Shader.PropertyToID("_DisplacementTex"), displacementTex);
-        mathShader.SetTexture(0, Shader.PropertyToID("_InitialSpectrumTex"), initialSpectrumTex);
-        mathShader.SetInt(Shader.PropertyToID("_N"), FFTSize);
-        mathShader.SetFloat(Shader.PropertyToID("_Length"), len);
-        mathShader.SetFloat(Shader.PropertyToID("_Time"), Time.time * speed);
-        mathShader.SetFloat(Shader.PropertyToID("_RepeatTime"), repeatTime);
+        fftWaterCS.SetTexture(0, Shader.PropertyToID("_HeightTex"), heightTex);
+        fftWaterCS.SetTexture(0, Shader.PropertyToID("_NormalTex"), normalTex);
+        fftWaterCS.SetTexture(0, Shader.PropertyToID("_DisplacementTex"), displacementTex);
+        fftWaterCS.SetTexture(0, Shader.PropertyToID("_TimeSpectrumTex"), timeSpectrumTex);
+        fftWaterCS.SetInt(Shader.PropertyToID("_N"), FFTSize);
+        fftWaterCS.SetFloat(Shader.PropertyToID("_Length"), len);
     }
 
     void SetMaterialVariables(){

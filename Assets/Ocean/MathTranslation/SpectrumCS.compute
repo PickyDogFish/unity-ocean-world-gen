@@ -1,6 +1,7 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel InitialSpectrum
 #pragma kernel ConjugatedSpectrum
+#pragma kernel TimeSpectrum
 
 static const float PI = 3.14f;
 static const float g = 9.81f;
@@ -9,12 +10,17 @@ static const float sigmaOverRho = 0.074e-3;
 
 Texture2D<float2> _NoiseTex;
 RWTexture2D<float4> _InitialSpectrumTex;
+RWTexture2D<float4> _TimeSpectrumTex;
 float _A = 0.08;
 uint _Size;
 float _Length;
 float2 _Wind;
+float _Time;
+float _RepeatTime;
 
 uint _SpectrumType;
+
+
 
 float phillips(int n_prime, int m_prime) {
     float2 k = (float2(n_prime, m_prime) - float2(_Size/2.0f, _Size/2.0f)) * PI / _Length;
@@ -35,6 +41,27 @@ float phillips(int n_prime, int m_prime) {
     float l2 = L2 * damping * damping;
  
     return _A * exp(-1.0 / (k_length2 * L2)) / k_length4 * k_dot_w2 * exp(-k_length2 * l2);
+}
+
+float dispersion(int n_prime, int m_prime) {
+    float w_0 = 2.0f * PI /_RepeatTime;
+    float2 k = (float2(n_prime, m_prime) - float2(_Size/2.0f, _Size/2.0f)) * PI / _Length;
+    return floor(sqrt(g * length(k)) / w_0) * w_0;
+}
+
+float2 euler(float x){
+    return float2(cos(x), sin(x));
+}
+
+float2 complexMultiply(float2 a, float2 b){
+    return float2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+}
+
+float2 htilde(float t, uint n_prime, uint m_prime){
+    float4 initialSpectrumVal = _InitialSpectrumTex[uint2(n_prime, m_prime)];
+    float2 ht0 = complexMultiply(initialSpectrumVal.xy, euler(dispersion(n_prime, m_prime) * t));
+    float2 ht01 = complexMultiply(initialSpectrumVal.zw, euler(-dispersion(n_prime, m_prime) * t));
+    return ht0 + ht01;
 }
 
 [numthreads(8,8,1)]
@@ -58,4 +85,9 @@ void ConjugatedSpectrum (uint3 id : SV_DispatchThreadID){
     initialValueConj.y = - initialValueConj.y;
 
     _InitialSpectrumTex[id.xy] = float4(initialValue.xy, initialValueConj.xy);
+}
+
+[numthreads(8,8,1)]
+void TimeSpectrum(uint3 id : SV_DispatchThreadID){
+    _TimeSpectrumTex[id.xy] = float4(htilde(_Time, id.x, id.y),0,0);
 }
