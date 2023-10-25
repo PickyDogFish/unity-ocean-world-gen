@@ -114,7 +114,7 @@ public class GridBuilder : MonoBehaviour
     {
         Mesh mesh = new Mesh();
         mesh.name = "Clipmap plane";
-        //TODO set different format if too big
+        mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         Vector3[] verts = new Vector3[(width + 1) * (height + 1)];
         Vector2[] uvs = new Vector2[(width + 1) * (height + 1)];
         int[] indices = new int[width * height * 2 * 3];
