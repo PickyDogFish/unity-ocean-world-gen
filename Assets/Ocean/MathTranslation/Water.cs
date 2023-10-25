@@ -15,6 +15,8 @@ public class Water : MonoBehaviour
     [SerializeField] private SpectrumType spectrumType;
     [SerializeField] private Vector2 wind = new Vector2(4,1);
     [SerializeField] private float phillipsA = 0.1f;
+    [SerializeField] private float lowCutoff = 0.0001f;
+    [SerializeField] private float highCutoff = 10000.0f;
     [SerializeField] private bool updateSpectrum = false;
     
     
@@ -47,7 +49,7 @@ public class Water : MonoBehaviour
             enableRandomWrite = true
         };
         
-        heightTex = new RenderTexture(FFTSize, FFTSize, 0, RenderTextureFormat.RFloat)
+        heightTex = new RenderTexture(FFTSize, FFTSize, 0, RenderTextureFormat.ARGBFloat)
         {
             enableRandomWrite = true
         };
@@ -55,7 +57,7 @@ public class Water : MonoBehaviour
         {
             enableRandomWrite = true
         };
-        displacementTex = new RenderTexture(FFTSize, FFTSize, 0, RenderTextureFormat.RGFloat)
+        displacementTex = new RenderTexture(FFTSize, FFTSize, 0, RenderTextureFormat.ARGBFloat)
         {
             enableRandomWrite = true
         };
@@ -68,7 +70,9 @@ public class Water : MonoBehaviour
     void CalculateInitialSpectrum(){
         spectrumCS.SetTexture(0, Shader.PropertyToID("_NoiseTex"), gaussianNoise);
         spectrumCS.SetTexture(0, Shader.PropertyToID("_InitialSpectrumTex"), initialSpectrumTex);
-        spectrumCS.SetFloat("_A", phillipsA);
+        spectrumCS.SetFloat(Shader.PropertyToID("_A"), phillipsA);
+        spectrumCS.SetFloat(Shader.PropertyToID("_LowCutoff"), lowCutoff);
+        spectrumCS.SetFloat(Shader.PropertyToID("_HighCutoff"), highCutoff);
         spectrumCS.SetFloat(Shader.PropertyToID("_Length"), len);
         spectrumCS.SetInt(Shader.PropertyToID("_Size"), FFTSize);
         spectrumCS.SetInt(Shader.PropertyToID("_SpectrumType"), (int) spectrumType);

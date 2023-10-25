@@ -11,7 +11,7 @@ Texture2D<float4> _TimeSpectrumTex;
 
 static const float PI = 3.14f;
 static const float g = 9.81f;
-uint _N; //fft size
+int _N; //fft size
 float _Length; //length of mesh
 
 float2 euler(float x){
@@ -28,19 +28,19 @@ void DoDFT(uint3 id : SV_DispatchThreadID)
     float h = 0.0f;
     float3 normal = 0.0f;
     float2 displacement = 0.0f;
-    for (uint i = 0; i < _N; i++){
-        for (uint j = 0; j < _N; j++){
-            //TODO remove this time multiplier
-            float2 htild = _TimeSpectrumTex[uint2(i,j)].xy;
+    for (int i = 0; i < _N; i++){
+        for (int j = 0; j < _N; j++){
+            float2 timeSpectrum = _TimeSpectrumTex[uint2(i,j)].xy;
 
             float2 k = (float2(i, j) - float2(_N/2.0f, _N/2.0f)) * PI / _Length;
             float kLen = length(k);
 
             float2 eulerkx = euler(dot(k, id.xy));
-            float2 hxt = complexMultiply(htild, eulerkx);
-
+            float2 hxt = complexMultiply(timeSpectrum, eulerkx);
+            
             h += hxt.x;
             normal += float3(-k.x * hxt.y, 0.0f, -k.y * hxt.y);
+
             if (kLen > 0.0001f)
                 displacement += k / kLen * hxt.y/_Length;
         }

@@ -548,7 +548,7 @@ MonoBehaviour:
   spectrumType: 0
   wind: {x: 5, y: 3}
   phillipsA: 0.001
-  updateSpectrum: 0
+  updateSpectrum: 1
   FFTSize: 64
   len: 256
   repeatTime: 200
