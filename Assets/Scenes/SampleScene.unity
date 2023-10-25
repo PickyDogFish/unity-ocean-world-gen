@@ -542,14 +542,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 824ab9686c31aa2439a831a433d2973b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spectrumShader: {fileID: 7200000, guid: 05d9cb74ab4750d42a4da25cffde0fbe, type: 3}
+  spectrumCS: {fileID: 7200000, guid: 05d9cb74ab4750d42a4da25cffde0fbe, type: 3}
   initialSpectrumTex: {fileID: 0}
+  timeSpectrumTex: {fileID: 0}
   spectrumType: 0
   wind: {x: 5, y: 3}
   phillipsA: 0.001
+  updateSpectrum: 0
   FFTSize: 64
   len: 256
-  mathShader: {fileID: 7200000, guid: 1d31b9e8a69fcda4f828a6922569414b, type: 3}
+  repeatTime: 200
+  speed: 1
+  fftWaterCS: {fileID: 7200000, guid: 1d31b9e8a69fcda4f828a6922569414b, type: 3}
   heightTex: {fileID: 0}
   normalTex: {fileID: 0}
   displacementTex: {fileID: 0}

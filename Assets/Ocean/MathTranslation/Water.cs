@@ -13,7 +13,7 @@ public class Water : MonoBehaviour
     [SerializeField] private RenderTexture initialSpectrumTex;
     [SerializeField] private RenderTexture timeSpectrumTex;
     [SerializeField] private SpectrumType spectrumType;
-    [SerializeField] private Vector2 wind = new Vector2(5,2);
+    [SerializeField] private Vector2 wind = new Vector2(4,1);
     [SerializeField] private float phillipsA = 0.1f;
     [SerializeField] private bool updateSpectrum = false;
     
