@@ -51,6 +51,7 @@ Shader "Custom/Water"
                 
                 float height = _HeightMap.SampleLevel(sampler_HeightMap, input.uv, 0.0f);
                 float2 displacement = _DisplacementMap.SampleLevel(sampler_DisplacementMap, input.uv, 0.0f).xy;
+                //displacement = 0.0f;
                 input.position += float3(displacement.x, height, displacement.y);
                 VertexPositionInputs posInputs = GetVertexPositionInputs(input.position);
                 

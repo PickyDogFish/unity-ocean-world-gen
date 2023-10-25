@@ -60,7 +60,7 @@ float DirectionSpectrum(float2 k) {
     float swell = 0.1;
     float angle = 5;
 	float s = HasselmanSpread(omega, peakOmega) + 16 * tanh(min(omega / peakOmega, 20)) * swell * swell;
-	return cos(theta);// HasselmanSpread(omega, peakOmega) ;//lerp(2.0f / 3.1415f * cos(theta) * cos(theta), Cosine2s(theta - angle, s), 0);
+	return lerp(2.0f / 3.1415f * cos(theta) * cos(theta), Cosine2s(theta - angle, s), 0);
 }
 
 
@@ -98,10 +98,9 @@ float PiersonMoskowitz(float2 k)
 		* exp(-1.25 * peakOmegaOverOmega * peakOmegaOverOmega * peakOmegaOverOmega * peakOmegaOverOmega);
 }
 
-float dispersion(int n_prime, int m_prime) {
+float dispersion(float kLen) {
     float w_0 = 2.0f * PI /_RepeatTime;
-    float2 k = (float2(n_prime, m_prime) - float2(_Size/2.0f, _Size/2.0f)) * PI / _Length;
-    return floor(sqrt(g * length(k)) / w_0) * w_0;
+    return floor(sqrt(g * kLen) / w_0) * w_0;
 }
 
 float2 euler(float x){
@@ -112,6 +111,10 @@ float2 complexMultiply(float2 a, float2 b){
     return float2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
 }
 
+float ShortWavesFade(float kLength) {
+    float fade = 0.1;
+	return exp(-fade * fade * kLength * kLength);
+}
 
 [numthreads(8,8,1)]
 void InitialSpectrum (uint3 id : SV_DispatchThreadID)
@@ -125,7 +128,7 @@ void InitialSpectrum (uint3 id : SV_DispatchThreadID)
         if (_SpectrumType == 0){
             spectrum = phillips(k);
         } else if (_SpectrumType == 1){
-            spectrum = DirectionSpectrum(k);
+            spectrum = PiersonMoskowitz(k) * DirectionSpectrum(k);
         }
         float2 htilde0 = random * sqrt(spectrum/2.0f);
         _InitialSpectrumTex[id.xy] = float4(htilde0, 0, 0);
@@ -143,18 +146,20 @@ void ConjugatedSpectrum (uint3 id : SV_DispatchThreadID){
     float4 initialValue =  _InitialSpectrumTex[id.xy];
     float4 initialValueConj =  _InitialSpectrumTex[uint2(modn, modm)];
 
-    _InitialSpectrumTex[id.xy] = float4(initialValue.xy, initialValueConj.x, -initialValueConj.y);
+    _InitialSpectrumTex[id.xy] = float4(initialValue.xy, initialValueConj.x, initialValueConj.y);
     //_InitialSpectrumTex[id.xy] = float4(id.xy/float(_Size), modn/float(_Size), modm/float(_Size));
 }
 
 
 float2 htilde(float t, uint n_prime, uint m_prime){
     float4 initialSpectrumVal = _InitialSpectrumTex[uint2(n_prime, m_prime)];
-    float disp = dispersion(n_prime, m_prime);
-    float2 exponent = euler(disp * t);
+    float2 k = (float2(n_prime, m_prime) - float2(_Size/2.0f, _Size/2.0f)) * PI / _Length;
+    float disp = dispersion(length(k)) * t;
+    float2 exponent = euler(disp);
     float2 ht0 = complexMultiply(initialSpectrumVal.xy, exponent);
     float2 ht01 = complexMultiply(initialSpectrumVal.zw, float2(exponent.x, -exponent.y));
     return ht0 + ht01;
+
 }
 
 [numthreads(8,8,1)]
