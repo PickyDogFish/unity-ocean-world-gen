@@ -22,6 +22,8 @@ Shader "Custom/Water"
             // Pull in URP library functions and our own common functions
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
+            float _Displacement;
+
             TEXTURE2D(_HeightMap);
             SAMPLER(sampler_HeightMap);
             float4 _HeightMap_ST;
@@ -50,8 +52,7 @@ Shader "Custom/Water"
                 v2f output;
                 
                 float height = _HeightMap.SampleLevel(sampler_HeightMap, input.uv, 0.0f);
-                float2 displacement = _DisplacementMap.SampleLevel(sampler_DisplacementMap, input.uv, 0.0f).xy;
-                //displacement = 0.0f;
+                float2 displacement = _DisplacementMap.SampleLevel(sampler_DisplacementMap, input.uv, 0.0f).xy * _Displacement;
                 input.position += float3(displacement.x, height, displacement.y);
                 VertexPositionInputs posInputs = GetVertexPositionInputs(input.position);
                 

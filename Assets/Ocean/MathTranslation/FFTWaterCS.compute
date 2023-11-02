@@ -47,7 +47,7 @@ void DoDFT(uint3 id : SV_DispatchThreadID)
             normal += float3(-k.x * hxt.y, 0.0f, -k.y * hxt.y);
 
             if (kLen > 0.00001f)
-                displacement += (k / kLen * hxt.y /_Length);
+                displacement += (k / kLen * hxt.y);
         }
     }
     _HeightTex[id.xy] = float4(h,1,1,1);

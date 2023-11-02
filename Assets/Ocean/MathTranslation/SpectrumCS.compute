@@ -14,7 +14,8 @@ RWTexture2D<float4> _TimeSpectrumTex;
 float _A = 0.08;
 int _Size;
 float _Length;
-float2 _Wind;
+float _WindAngle;
+float _WindMagnitude;
 float _Time;
 float _RepeatTime;
 
@@ -55,12 +56,11 @@ float HasselmanSpread(float omega, float peakOmega){
 
 float DirectionSpectrum(float2 k) {
     float omega = length(k);
-    float peakOmega = PiersonMoskowitzPeakOmega(length(_Wind));
+    float peakOmega = PiersonMoskowitzPeakOmega(_WindMagnitude);
     float theta = atan2(k.y,k.x);
     float swell = 0.1;
-    float angle = 5;
 	float s = HasselmanSpread(omega, peakOmega) + 16 * tanh(min(omega / peakOmega, 20)) * swell * swell;
-	return lerp(2.0f / 3.1415f * cos(theta) * cos(theta), Cosine2s(theta - angle, s), 0);
+	return Cosine2s(theta - _WindAngle, s);//lerp(2.0f / 3.1415f * cos(theta) * cos(theta), Cosine2s(theta - _WindAngle, s), 0);
 }
 
 
@@ -73,14 +73,13 @@ float phillips(float2 k) {
     float k_length2 = k_length * k_length;
     float k_length4 = k_length2 * k_length2;
  
-    float k_dot_w = dot(normalize(k), normalize(_Wind));
+    float k_dot_w = dot(normalize(k), float2(cos(_WindAngle), sin(_WindAngle)));
     float k_dot_w2 = k_dot_w * k_dot_w;
  
-    float w_length = length(_Wind);
-    float L = w_length * w_length / g;
+    float L = _WindMagnitude * _WindMagnitude / g;
     float L2 = L * L;
      
-    float damping = 0.001;
+    float damping = 0.01;
     float l2 = L2 * damping * damping;
  
     return _A * exp(-1.0 / (k_length2 * L2)) / k_length4 * k_dot_w2 * exp(-k_length2 * l2);
@@ -90,7 +89,7 @@ float phillips(float2 k) {
 float PiersonMoskowitz(float2 k)
 {
     float omega = length(k);
-    float peakOmega = PiersonMoskowitzPeakOmega(length(_Wind));
+    float peakOmega = PiersonMoskowitzPeakOmega(_WindMagnitude);
 	float oneOverOmega = 1 / omega;
 	float peakOmegaOverOmega = peakOmega / omega;
 	
@@ -107,6 +106,7 @@ float2 euler(float x){
     return float2(cos(x), sin(x));
 }
 
+
 float2 complexMultiply(float2 a, float2 b){
     return float2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
 }
@@ -122,7 +122,7 @@ void InitialSpectrum (uint3 id : SV_DispatchThreadID)
     float2 k = (float2(id.xy) - float2(_Size/2.0f, _Size/2.0f)) * PI / _Length;
     float kLength = length(k);
 
-    if (_LowCutoff <= kLength && kLength <= _HighCutoff) {
+    if (_LowCutoff <= kLength && kLength <= _HighCutoff && (kLength * _Length / PI) < (_Size/2.0f)) {
         float2 random = _NoiseTex[id.xy];
         float spectrum = 1;
         if (_SpectrumType == 0){

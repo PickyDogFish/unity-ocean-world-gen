@@ -546,7 +546,8 @@ MonoBehaviour:
   initialSpectrumTex: {fileID: 0}
   timeSpectrumTex: {fileID: 0}
   spectrumType: 1
-  wind: {x: 5, y: 3}
+  windAngle: 0
+  windMagnitude: 5
   phillipsA: 0.001
   lowCutoff: 0.0001
   highCutoff: 10000
@@ -589,7 +590,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   oceanParameters: {fileID: 0}
   useOverride: 1
-  sizeOverride: 1024
+  sizeOverride: 256
 --- !u!23 &462530889
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -906,8 +907,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   oceanParameters: {fileID: 11400000, guid: 366fad08611b10342a225ac0226998dd, type: 2}
-  useOverride: 0
-  sizeOverride: -1
+  useOverride: 1
+  sizeOverride: 128
 --- !u!114 &1890975384
 MonoBehaviour:
   m_ObjectHideFlags: 0

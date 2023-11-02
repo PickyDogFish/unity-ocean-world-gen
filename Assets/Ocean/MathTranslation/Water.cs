@@ -13,7 +13,8 @@ public class Water : MonoBehaviour
     [SerializeField] private RenderTexture initialSpectrumTex;
     [SerializeField] private RenderTexture timeSpectrumTex;
     [SerializeField] private SpectrumType spectrumType;
-    [SerializeField] private Vector2 wind = new Vector2(4,1);
+    [SerializeField] private float windAngle = 0;
+    [SerializeField] private float windMagnitude = 0;
     [SerializeField] private float phillipsA = 0.1f;
     [SerializeField] private float lowCutoff = 0.0001f;
     [SerializeField] private float highCutoff = 10000.0f;
@@ -27,6 +28,7 @@ public class Water : MonoBehaviour
     [SerializeField] private float repeatTime = 200;
     [Range(0.1f, 2.0f)][SerializeField] private float speed = 1;
     [SerializeField] private ComputeShader fftWaterCS;
+    [SerializeField] private float displacementMagnitude = 1;
 
     
 
@@ -76,7 +78,8 @@ public class Water : MonoBehaviour
         spectrumCS.SetFloat(Shader.PropertyToID("_Length"), len);
         spectrumCS.SetInt(Shader.PropertyToID("_Size"), FFTSize);
         spectrumCS.SetInt(Shader.PropertyToID("_SpectrumType"), (int) spectrumType);
-        spectrumCS.SetVector(Shader.PropertyToID("_Wind"), wind);
+        spectrumCS.SetFloat(Shader.PropertyToID("_WindAngle"), windAngle);
+        spectrumCS.SetFloat(Shader.PropertyToID("_WindMagnitude"), windMagnitude);
         spectrumCS.Dispatch(0, FFTSize/8, FFTSize/8, 1);
     }
 
@@ -121,5 +124,6 @@ public class Water : MonoBehaviour
         material.SetTexture("_HeightMap", heightTex);
         material.SetTexture("_NormalMap", normalTex);
         material.SetTexture("_DisplacementMap", displacementTex);
+        material.SetFloat("_Displacement", displacementMagnitude);
     }
 }
