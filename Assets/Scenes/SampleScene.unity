@@ -547,7 +547,7 @@ MonoBehaviour:
   timeSpectrumTex: {fileID: 0}
   spectrumType: 1
   windAngle: 0
-  windMagnitude: 5
+  windMagnitude: 8
   phillipsA: 0.001
   lowCutoff: 0.0001
   highCutoff: 10000
@@ -557,6 +557,7 @@ MonoBehaviour:
   repeatTime: 200
   speed: 1
   fftWaterCS: {fileID: 7200000, guid: 1d31b9e8a69fcda4f828a6922569414b, type: 3}
+  displacementMagnitude: 1
   heightTex: {fileID: 0}
   normalTex: {fileID: 0}
   displacementTex: {fileID: 0}
