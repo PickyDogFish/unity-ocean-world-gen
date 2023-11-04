@@ -529,7 +529,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &462530886
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -552,10 +552,10 @@ MonoBehaviour:
   lowCutoff: 0.0001
   highCutoff: 10000
   updateSpectrum: 1
-  FFTSize: 64
-  len: 128
   repeatTime: 200
   speed: 1
+  FFTSize: 64
+  len: 128
   fftWaterCS: {fileID: 7200000, guid: 1d31b9e8a69fcda4f828a6922569414b, type: 3}
   displacementMagnitude: 1
   heightTex: {fileID: 0}
@@ -789,6 +789,141 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1023640313
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1023640315}
+  - component: {fileID: 1023640314}
+  - component: {fileID: 1023640316}
+  - component: {fileID: 1023640318}
+  - component: {fileID: 1023640317}
+  m_Layer: 0
+  m_Name: FFTWater
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1023640314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1023640313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4b5f65c85e2e1d4e9c5e52245c745b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spectrumCS: {fileID: 7200000, guid: 05d9cb74ab4750d42a4da25cffde0fbe, type: 3}
+  spectrumType: 1
+  windAngle: 0
+  windMagnitude: 8
+  phillipsA: 0.1
+  lowCutoff: 0.0001
+  highCutoff: 10000
+  updateSpectrum: 0
+  repeatTime: 200
+  speed: 1
+  len: 8
+  material: {fileID: 2100000, guid: 0ec0ee098347dd34193abfa2ca74b962, type: 2}
+  heightTex: {fileID: 0}
+  normalTex: {fileID: 0}
+  twiddleTex: {fileID: 0}
+  pingPongTex: {fileID: 0}
+  htildeTex: {fileID: 0}
+  htildeSlopeXTex: {fileID: 0}
+  htildeSlopeZTex: {fileID: 0}
+  htildeDisplacementXTex: {fileID: 0}
+  htildeDisplacementZTex: {fileID: 0}
+  FFTCS: {fileID: 7200000, guid: 2f3c6f07349575e49b3c3560719b40ef, type: 3}
+  FFTSize: 512
+--- !u!4 &1023640315
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1023640313}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 7
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1023640316
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1023640313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 125d38e7eba71d7429e7bdfaff43971d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  oceanParameters: {fileID: 11400000, guid: 366fad08611b10342a225ac0226998dd, type: 2}
+  useOverride: 1
+  sizeOverride: 128
+--- !u!23 &1023640317
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1023640313}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 0ec0ee098347dd34193abfa2ca74b962, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1023640318
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1023640313}
+  m_Mesh: {fileID: 0}
 --- !u!1 &1890975378
 GameObject:
   m_ObjectHideFlags: 0

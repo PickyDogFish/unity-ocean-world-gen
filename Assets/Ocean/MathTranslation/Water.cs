@@ -19,14 +19,14 @@ public class Water : MonoBehaviour
     [SerializeField] private float lowCutoff = 0.0001f;
     [SerializeField] private float highCutoff = 10000.0f;
     [SerializeField] private bool updateSpectrum = false;
+    [SerializeField] private float repeatTime = 200;
+    [Range(0.1f, 2.0f)][SerializeField] private float speed = 1;
     
     
     
     [Header("Other settings")]
     [SerializeField] private int FFTSize = 128;
     [SerializeField] private float len = 128;
-    [SerializeField] private float repeatTime = 200;
-    [Range(0.1f, 2.0f)][SerializeField] private float speed = 1;
     [SerializeField] private ComputeShader fftWaterCS;
     [SerializeField] private float displacementMagnitude = 1;
 

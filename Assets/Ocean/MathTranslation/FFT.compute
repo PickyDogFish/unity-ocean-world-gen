@@ -1,0 +1,111 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel PrecomputeTwiddleFactorsAndInputIndices
+#pragma kernel CS_HorizontalStepInverseFFT,
+#pragma kernel CS_VerticalStepInverseFFT,
+#pragma kernel CS_Permute,
+#pragma kernel CS_AssembleMaps,
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<half4> _HeightTex, _NormalTex;
+RWTexture2D<half4> _TwiddleTexture;
+RWTexture2D<half4> _Buffer0;
+RWTexture2D<half4> _Buffer1;
+
+uint _Size;
+static const float PI = 3.141592f;
+bool _PingPong;
+uint _Step;
+float2 _Lambda;
+float _NormalStrength;
+
+RWTexture2D<float2> _HTildeTex, _HTildeSlopeXTex, _HTildeSlopeZTex, _HTildeDisplacementXTex, _HTildeDisplacementZTex;
+
+//From https://github.com/gasgiant/FFT-Ocean/blob/main/Assets/ComputeShaders/FastFourierTransform.compute
+
+float2 ComplexExp(float2 a) {
+    return float2(cos(a.y), sin(a.y) * exp(a.x));
+}
+
+float2 complexMultiply(float2 a, float2 b){
+    return float2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+}
+
+[numthreads(1, 8, 1)]
+void PrecomputeTwiddleFactorsAndInputIndices(uint3 id : SV_DispatchThreadID)
+{
+	uint b = _Size >> (id.x + 1);
+	float2 mult = 2 * PI * float2(0, 1) / _Size;
+	uint i = (2 * b * (id.y / b) + id.y % b) % _Size;
+	float2 twiddle = ComplexExp(-mult * ((id.y / b) * b));
+	_TwiddleTexture[id.xy] = float4(twiddle.x, twiddle.y, i, i + b);
+	_TwiddleTexture[uint2(id.x, id.y + _Size / 2)] = float4(-twiddle.x, -twiddle.y, i, i + b);
+}
+
+
+[numthreads(8,8,1)]
+void CS_HorizontalStepInverseFFT(uint3 id : SV_DISPATCHTHREADID) {
+    float4 data = _TwiddleTexture[uint2(_Step, id.x)];
+
+    uint2 inputsIndices = (uint2)data.ba;
+
+    float2 x = 0.0f;
+    float2 y = 0.0f;
+
+    if (_PingPong) {
+        x = _Buffer0[uint2(inputsIndices.x, id.y)].rg;
+        y = _Buffer0[uint2(inputsIndices.y, id.y)].rg;
+    } else {
+        x = _Buffer1[uint2(inputsIndices.x, id.y)].rg;
+        y = _Buffer1[uint2(inputsIndices.y, id.y)].rg;
+    }
+
+    float2 output = x + complexMultiply(float2(data.r, -data.g), y);
+
+    if (_PingPong)
+        _Buffer1[id.xy] = float4(output, 0, 0);
+    else
+        _Buffer0[id.xy] = float4(output, 0, 0);
+}
+
+[numthreads(8,8,1)]
+void CS_VerticalStepInverseFFT(uint3 id : SV_DISPATCHTHREADID) {
+    float4 data = _TwiddleTexture[uint2(_Step, id.y)];
+
+    uint2 inputsIndices = (uint2)data.ba;
+
+    float2 x = 0.0f;
+    float2 y = 0.0f;
+
+    if (_PingPong) {
+        x = _Buffer0[uint2(id.x, inputsIndices.x)].rg;
+        y = _Buffer0[uint2(id.x, inputsIndices.y)].rg;
+    } else {
+        x = _Buffer1[uint2(id.x, inputsIndices.x)].rg;
+        y = _Buffer1[uint2(id.x, inputsIndices.y)].rg;
+    }
+
+    float2 output = x + complexMultiply(float2(data.r, -data.g), y);
+
+    if (_PingPong)
+        _Buffer1[id.xy] = float4(output, 0, 0);
+    else
+        _Buffer0[id.xy] = float4(output, 0, 0);
+}
+
+[numthreads(8, 8, 1)]
+void CS_Permute(uint3 id : SV_DISPATCHTHREADID) {
+    _Buffer0[id.xy] = _Buffer0[id.xy] * (1.0f - 2.0f * ((id.x + id.y) % 2));
+}
+
+[numthreads(8, 8, 1)]
+void CS_AssembleMaps(uint3 id: SV_DISPATCHTHREADID) {
+    float2 htilde = _HTildeTex[id.xy];
+    float2 slopeX = _HTildeSlopeXTex[id.xy] * _NormalStrength;
+    float2 slopeZ = _HTildeSlopeZTex[id.xy] * _NormalStrength;
+    float2 displacementX = _HTildeDisplacementXTex[id.xy];
+    float2 displacementZ = _HTildeDisplacementZTex[id.xy];
+
+    _HeightTex[id.xy] = float4(htilde.x, displacementX.x * _Lambda.x, displacementZ.x * _Lambda.y, 0);
+    _NormalTex[id.xy] = float4(normalize(float3(-slopeX.x, 1.0f, -slopeZ.x)), 0.0f);
+}

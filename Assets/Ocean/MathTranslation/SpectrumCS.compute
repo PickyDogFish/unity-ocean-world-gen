@@ -2,15 +2,16 @@
 #pragma kernel InitialSpectrum
 #pragma kernel ConjugatedSpectrum
 #pragma kernel TimeSpectrum
+#pragma kernel TimeSpectrumForFFT
 
 static const float PI = 3.14f;
-static const float g = 9.81f;
+static const float GRAVITY = 9.81f;
 static const float sigmaOverRho = 0.074e-3;
 
 
 Texture2D<float2> _NoiseTex;
-RWTexture2D<float4> _InitialSpectrumTex;
-RWTexture2D<float4> _TimeSpectrumTex;
+RWTexture2D<half4> _InitialSpectrumTex;
+RWTexture2D<half4> _TimeSpectrumTex;
 float _A = 0.08;
 int _Size;
 float _Length;
@@ -25,12 +26,13 @@ float _HighCutoff;
 
 uint _SpectrumType;
 
-
+//FFT additions
+RWTexture2D<half2> _HTildeTex, _HTildeSlopeXTex, _HTildeSlopeZTex, _HTildeDisplacementXTex, _HTildeDisplacementZTex;
 
 
 float PiersonMoskowitzPeakOmega(float u){
     float nu = 0.13;
-    return 2 * PI * nu * g / u;
+    return 2 * PI * nu * GRAVITY / u;
 }
 
 float NormalizationFactor(float s) {
@@ -76,7 +78,7 @@ float phillips(float2 k) {
     float k_dot_w = dot(normalize(k), float2(cos(_WindAngle), sin(_WindAngle)));
     float k_dot_w2 = k_dot_w * k_dot_w;
  
-    float L = _WindMagnitude * _WindMagnitude / g;
+    float L = _WindMagnitude * _WindMagnitude / GRAVITY;
     float L2 = L * L;
      
     float damping = 0.01;
@@ -93,13 +95,13 @@ float PiersonMoskowitz(float2 k)
 	float oneOverOmega = 1 / omega;
 	float peakOmegaOverOmega = peakOmega / omega;
 	
-	return 8.1e-3 * g * g * oneOverOmega * oneOverOmega * oneOverOmega * oneOverOmega * oneOverOmega
+	return 8.1e-3 * GRAVITY * GRAVITY * oneOverOmega * oneOverOmega * oneOverOmega * oneOverOmega * oneOverOmega
 		* exp(-1.25 * peakOmegaOverOmega * peakOmegaOverOmega * peakOmegaOverOmega * peakOmegaOverOmega);
 }
 
 float dispersion(float kLen) {
     float w_0 = 2.0f * PI /_RepeatTime;
-    return floor(sqrt(g * kLen) / w_0) * w_0;
+    return floor(sqrt(GRAVITY * kLen) / w_0) * w_0;
 }
 
 float2 euler(float x){
@@ -165,4 +167,39 @@ float2 htilde(float t, uint n_prime, uint m_prime){
 [numthreads(8,8,1)]
 void TimeSpectrum(uint3 id : SV_DispatchThreadID){
     _TimeSpectrumTex[id.xy] = float4(htilde(_Time, id.x, id.y),0,0);
+}
+
+
+[numthreads(8, 8, 1)]
+void TimeSpectrumForFFT(uint3 id : SV_DISPATCHTHREADID) {
+    float4 initialSignal = _InitialSpectrumTex[id.xy];
+    float2 h0 = initialSignal.xy;
+    float2 h0conj = initialSignal.zw;
+
+    float halfN = _Size / 2.0f;
+    float2 K = (id.xy - halfN) * 2.0f * PI / _Length;
+    float kMag = length(K);
+    float kMagRcp = rcp(kMag);
+
+    float w_0 = 2.0f * PI / _RepeatTime;
+    float dispersion = floor(sqrt(GRAVITY * kMag) / w_0) * w_0 * _Time;
+
+    float2 exponent = euler(dispersion);
+
+    float2 htilde = complexMultiply(h0, exponent) + complexMultiply(h0conj, float2(exponent.x, -exponent.y));
+
+    float2 displacementX = complexMultiply(htilde, float2(0, -K.x / kMag));
+    float2 displacementZ = complexMultiply(htilde, float2(0, -K.y / kMag));
+
+    if (kMag < 0.00001f) {
+        displacementX = 0;
+        displacementZ = 0;
+    }
+
+    // Avoids doubling up on euler formula calc when there's no need
+    _HTildeTex[id.xy] = htilde;
+    _HTildeSlopeXTex[id.xy] = complexMultiply(htilde, float2(0, K.x));
+    _HTildeSlopeZTex[id.xy] = complexMultiply(htilde, float2(0, K.y));
+    _HTildeDisplacementXTex[id.xy] = displacementX;
+    _HTildeDisplacementZTex[id.xy] = displacementZ;
 }
