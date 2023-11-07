@@ -47,6 +47,9 @@ public class FFTWater : MonoBehaviour
     [Header("FFT Settings")]
     [SerializeField] private ComputeShader FFTCS;
     public int FFTSize = 128;
+    [SerializeField] private Vector2 displacementStrength = Vector2.one;
+    [SerializeField] private float normalStrength = 1;
+    [SerializeField] private bool updateOcean = true;
 
     void Start()
     {
@@ -61,7 +64,7 @@ public class FFTWater : MonoBehaviour
         CalculateConjugatedSpectrum();
 
         //TODO expose these two variables in the editor
-        FFTCS.SetVector("_Lambda", new Vector2(0.1f,0.1f));
+        FFTCS.SetVector("_Lambda", displacementStrength);
         FFTCS.SetFloat("_NormalStrength", 1);
 
         FFTCS.SetTexture(CSKernels.twiddlePrecomputeKernel, "_TwiddleTexture", twiddleTex);
@@ -80,6 +83,11 @@ public class FFTWater : MonoBehaviour
             CalculateConjugatedSpectrum();
         }
 
+        if (updateOcean){
+            FFTCS.SetVector("_Lambda", displacementStrength);
+            FFTCS.SetFloat("_NormalStrength", normalStrength);
+        }
+
         CalculateTimeSpectrum();
 
         InverseFFT(htildeTex);
@@ -88,7 +96,10 @@ public class FFTWater : MonoBehaviour
         InverseFFT(htildeDisplacementXTex);
         InverseFFT(htildeDisplacementZTex);
 
-        // Assemble maps
+        AssembleMaps();
+    }
+
+    void AssembleMaps(){
         FFTCS.SetTexture(CSKernels.assembleMapsKernel, "_HTildeTex", htildeTex);
         FFTCS.SetTexture(CSKernels.assembleMapsKernel, "_HTildeSlopeXTex", htildeSlopeXTex);
         FFTCS.SetTexture(CSKernels.assembleMapsKernel, "_HTildeSlopeZTex", htildeSlopeZTex);
@@ -142,7 +153,7 @@ public class FFTWater : MonoBehaviour
         spectrumCS.SetTexture(CSKernels.FFTTimeKernel, "_HTildeTex", htildeTex);
         spectrumCS.SetTexture(CSKernels.FFTTimeKernel, "_HTildeSlopeXTex", htildeSlopeXTex);
         spectrumCS.SetTexture(CSKernels.FFTTimeKernel, "_HTildeSlopeZTex", htildeSlopeZTex);
-        spectrumCS.SetTexture(CSKernels.FFTTimeKernel, "_HTildeDisplacementXTex", htildeDisplacementZTex);
+        spectrumCS.SetTexture(CSKernels.FFTTimeKernel, "_HTildeDisplacementXTex", htildeDisplacementXTex);
         spectrumCS.SetTexture(CSKernels.FFTTimeKernel, "_HTildeDisplacementZTex", htildeDisplacementZTex);
         spectrumCS.SetFloat("_Time", Time.time * speed);
         spectrumCS.SetFloat("_RepeatTime", repeatTime);
