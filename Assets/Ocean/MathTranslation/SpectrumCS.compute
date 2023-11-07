@@ -14,7 +14,7 @@ RWTexture2D<half4> _InitialSpectrumTex;
 RWTexture2D<half4> _TimeSpectrumTex;
 float _A = 0.08;
 int _Size;
-float _Length;
+float _LengthScale;
 float _WindAngle;
 float _WindMagnitude;
 float _Time;
@@ -121,10 +121,10 @@ float ShortWavesFade(float kLength) {
 [numthreads(8,8,1)]
 void InitialSpectrum (uint3 id : SV_DispatchThreadID)
 {
-    float2 k = (float2(id.xy) - float2(_Size/2.0f, _Size/2.0f)) * PI / _Length;
+    float2 k = (float2(id.xy) - float2(_Size/2.0f, _Size/2.0f)) * PI / _LengthScale;
     float kLength = length(k);
 
-    if (_LowCutoff <= kLength && kLength <= _HighCutoff && (kLength * _Length / PI) < (_Size/2.0f)) {
+    if (_LowCutoff <= kLength && kLength <= _HighCutoff && (kLength * _LengthScale / PI) < (_Size/2.0f)) {
         float2 random = _NoiseTex[id.xy];
         float spectrum = 1;
         if (_SpectrumType == 0){
@@ -155,7 +155,7 @@ void ConjugatedSpectrum (uint3 id : SV_DispatchThreadID){
 
 float2 htilde(float t, uint n_prime, uint m_prime){
     float4 initialSpectrumVal = _InitialSpectrumTex[uint2(n_prime, m_prime)];
-    float2 k = (float2(n_prime, m_prime) - float2(_Size/2.0f, _Size/2.0f)) * PI / _Length;
+    float2 k = (float2(n_prime, m_prime) - float2(_Size/2.0f, _Size/2.0f)) * PI / _LengthScale;
     float disp = dispersion(length(k)) * t;
     float2 exponent = euler(disp);
     float2 ht0 = complexMultiply(initialSpectrumVal.xy, exponent);
@@ -177,7 +177,7 @@ void TimeSpectrumForFFT(uint3 id : SV_DISPATCHTHREADID) {
     float2 h0conj = initialSignal.zw;
 
     float halfN = _Size / 2.0f;
-    float2 K = (id.xy - halfN) * 2.0f * PI / _Length;
+    float2 K = (id.xy - halfN) * 2.0f * PI / _LengthScale;
     float kMag = length(K);
     float kMagRcp = rcp(kMag);
 

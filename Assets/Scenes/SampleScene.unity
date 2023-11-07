@@ -831,7 +831,7 @@ MonoBehaviour:
   updateSpectrum: 0
   repeatTime: 200
   speed: 1
-  len: 8
+  lengthScale: 8
   material: {fileID: 2100000, guid: 0ec0ee098347dd34193abfa2ca74b962, type: 2}
   heightTex: {fileID: 0}
   normalTex: {fileID: 0}
@@ -843,7 +843,7 @@ MonoBehaviour:
   htildeDisplacementXTex: {fileID: 0}
   htildeDisplacementZTex: {fileID: 0}
   FFTCS: {fileID: 7200000, guid: 2f3c6f07349575e49b3c3560719b40ef, type: 3}
-  FFTSize: 512
+  FFTSize: 128
 --- !u!4 &1023640315
 Transform:
   m_ObjectHideFlags: 0

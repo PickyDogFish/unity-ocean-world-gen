@@ -25,7 +25,7 @@ public class FFTWater : MonoBehaviour
     private Texture2D gaussianNoise;
     int threadGroupsX;
     int threadGroupsY;
-    [SerializeField] private float len = 128;
+    [SerializeField] private float lengthScale = 8;
 
     [SerializeField] private Material material;
 
@@ -121,7 +121,7 @@ public class FFTWater : MonoBehaviour
         spectrumCS.SetFloat("_A", phillipsA);
         spectrumCS.SetFloat("_LowCutoff", lowCutoff);
         spectrumCS.SetFloat("_HighCutoff", highCutoff);
-        spectrumCS.SetFloat("_Length", len);
+        spectrumCS.SetFloat("_LengthScale", lengthScale);
         spectrumCS.SetInt("_Size", FFTSize);
         spectrumCS.SetInt("_SpectrumType", (int)spectrumType);
         spectrumCS.SetFloat("_WindAngle", windAngle);
