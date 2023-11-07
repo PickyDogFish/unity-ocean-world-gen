@@ -9,7 +9,9 @@ using UnityEngine;
 public class CPU_water : MonoBehaviour
 {
     [SerializeField] SpectrumGenerator spectrumGen;
-    [SerializeField] OceanParameters oceanParams;
+    [SerializeField] private int oceanSize = 32;
+    [SerializeField] private float oceanScale = 1;
+    [SerializeField] private float waveAmplitude = 1;
     private float[,] heightMap;
     [SerializeField] Texture2D heightTex;
     [SerializeField] Texture2D testTex;
@@ -23,9 +25,9 @@ public class CPU_water : MonoBehaviour
     void Awake()
     {
         spectrumGen = GetComponent<SpectrumGenerator>();
-        heightMap = new float[oceanParams.size, oceanParams.size];
-        heightTex = new Texture2D(oceanParams.size, oceanParams.size, TextureFormat.RFloat, false);
-        heightRT = new RenderTexture(oceanParams.size, oceanParams.size, 0, RenderTextureFormat.RFloat);
+        heightMap = new float[oceanSize, oceanSize];
+        heightTex = new Texture2D(oceanSize, oceanSize, TextureFormat.RFloat, false);
+        heightRT = new RenderTexture(oceanSize, oceanSize, 0, RenderTextureFormat.RFloat);
         heightRT.enableRandomWrite = true;
     }
     // Start is called before the first frame update
@@ -46,7 +48,7 @@ public class CPU_water : MonoBehaviour
 
     void CalculateHeight()
     {
-        int n = oceanParams.size;
+        int n = oceanSize;
         for (int hx = 0; hx < n; hx++)
         {
             for (int hy = 0; hy < n; hy++)
@@ -57,7 +59,7 @@ public class CPU_water : MonoBehaviour
                     for (int y = 0; y < n; y++)
                     {
                         //k represents the frequency
-                        Vector2 k = new Vector2(x - n / 2, y - n / 2) * Mathf.PI / oceanParams.lengthScale;
+                        Vector2 k = new Vector2(x - n / 2, y - n / 2) * Mathf.PI / oceanScale;
                         Vector4 spectrum = spectrumGen.timeSpectrum[y,x];
                         float a = spectrum[0];
                         float b = spectrum[1];
@@ -74,14 +76,14 @@ public class CPU_water : MonoBehaviour
                     }
                 }
                 Debug.Log(height);
-                heightMap[hx, hy] = height * oceanParams.waveAmplitude;
+                heightMap[hx, hy] = height * waveAmplitude;
             }
         }
     }
 
     void WriteToTex()
     {
-        int n = oceanParams.size;
+        int n = oceanSize;
         for (int hx = 0; hx < n; hx++)
         {
             for (int hy = 0; hy < n; hy++)
@@ -122,14 +124,14 @@ public class CPU_water : MonoBehaviour
 
     void CalculateHeightGPU(){
         SetupShader();
-        heightShader.Dispatch(0, oceanParams.size/8, oceanParams.size/8, 1);
+        heightShader.Dispatch(0, oceanSize/8, oceanSize/8, 1);
     }
 
     void SetupShader(){
         heightShader.SetTexture(0, "_TimeSpectrum", spectrumGen.spectrumTexture);
         heightShader.SetTexture(0, "_HeightMap", heightRT);
-        heightShader.SetInt("_Size", oceanParams.size);
-        heightShader.SetFloat("_LengthScale", oceanParams.lengthScale);
-        heightShader.SetFloat("_Amplitude", oceanParams.waveAmplitude);
+        heightShader.SetInt("_Size", oceanSize);
+        heightShader.SetFloat("_LengthScale", oceanScale);
+        heightShader.SetFloat("_Amplitude", waveAmplitude);
     }
 }

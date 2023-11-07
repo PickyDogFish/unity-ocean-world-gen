@@ -123,160 +123,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &245084403
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 245084405}
-  - component: {fileID: 245084404}
-  - component: {fileID: 245084406}
-  - component: {fileID: 245084408}
-  - component: {fileID: 245084407}
-  - component: {fileID: 245084410}
-  - component: {fileID: 245084409}
-  m_Layer: 0
-  m_Name: Ocean
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!114 &245084404
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 245084403}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 99060bfe4e322624c84d62602de16aca, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  initialSpectrum: {fileID: 0}
-  timeSpectrum: {fileID: 0}
-  heightTex: {fileID: 0}
-  oceanParameters: {fileID: 11400000, guid: 366fad08611b10342a225ac0226998dd, type: 2}
-  spectrumShader: {fileID: 7200000, guid: 64c0ec7d146ab154dba67b36c242814d, type: 3}
-  fftShader: {fileID: 7200000, guid: c83af04880c6b854e8058bf5d7fd11b2, type: 3}
---- !u!4 &245084405
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 245084403}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &245084406
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 245084403}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 125d38e7eba71d7429e7bdfaff43971d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  oceanParameters: {fileID: 11400000, guid: 366fad08611b10342a225ac0226998dd, type: 2}
-  useOverride: 0
-  sizeOverride: -1
---- !u!23 &245084407
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 245084403}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 9970fc5d3eb903f4c9d2473d7e829c9b, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &245084408
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 245084403}
-  m_Mesh: {fileID: 0}
---- !u!114 &245084409
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 245084403}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f48c92ef0b45284c8ce1534d5ed6792, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  oceanParameters: {fileID: 11400000, guid: 366fad08611b10342a225ac0226998dd, type: 2}
-  spectrumTexture: {fileID: 0}
---- !u!114 &245084410
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 245084403}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b49b61fedeadbf418a02923be5f3014, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  spectrumGen: {fileID: 0}
-  oceanParams: {fileID: 11400000, guid: 366fad08611b10342a225ac0226998dd, type: 2}
-  heightTex: {fileID: 0}
-  testTex: {fileID: 0}
-  heightRT: {fileID: 0}
-  oceanMaterial: {fileID: 2100000, guid: 9970fc5d3eb903f4c9d2473d7e829c9b, type: 2}
-  runOnGPU: 0
-  heightShader: {fileID: 7200000, guid: 1380b90f703ad384fbfc1b54e95f1fb8, type: 3}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -537,7 +383,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 462530885}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 824ab9686c31aa2439a831a433d2973b, type: 3}
   m_Name: 
@@ -575,7 +421,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &462530888
 MonoBehaviour:
@@ -589,9 +435,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 125d38e7eba71d7429e7bdfaff43971d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  oceanParameters: {fileID: 0}
-  useOverride: 1
-  sizeOverride: 256
+  size: 64
 --- !u!23 &462530889
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -642,104 +486,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 462530885}
   m_Mesh: {fileID: 0}
---- !u!1 &491119776
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 491119780}
-  - component: {fileID: 491119779}
-  - component: {fileID: 491119778}
-  - component: {fileID: 491119777}
-  m_Layer: 0
-  m_Name: Plane
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!64 &491119777
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 491119776}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 4
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &491119778
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 491119776}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 9970fc5d3eb903f4c9d2473d7e829c9b, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &491119779
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 491119776}
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!4 &491119780
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 491119776}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 5, y: 5, z: 5}
-  m_ConstrainProportionsScale: 1
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 4
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -860,7 +606,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1023640316
 MonoBehaviour:
@@ -874,9 +620,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 125d38e7eba71d7429e7bdfaff43971d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  oceanParameters: {fileID: 11400000, guid: 366fad08611b10342a225ac0226998dd, type: 2}
-  useOverride: 1
-  sizeOverride: 128
+  size: 128
 --- !u!23 &1023640317
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -981,7 +725,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &1890975381
 MeshRenderer:
@@ -1045,9 +789,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 125d38e7eba71d7429e7bdfaff43971d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  oceanParameters: {fileID: 11400000, guid: 366fad08611b10342a225ac0226998dd, type: 2}
-  useOverride: 1
-  sizeOverride: 128
+  size: 64
 --- !u!114 &1890975384
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1060,5 +802,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f48c92ef0b45284c8ce1534d5ed6792, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  oceanParameters: {fileID: 11400000, guid: 366fad08611b10342a225ac0226998dd, type: 2}
+  oceanSize: 64
+  oceanScale: 128
+  waveAmplitude: 1
+  windSpeed: {x: 8.15, y: 10}
   spectrumTexture: {fileID: 0}

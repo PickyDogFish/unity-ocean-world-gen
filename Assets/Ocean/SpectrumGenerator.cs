@@ -6,7 +6,12 @@ namespace OceanSimulation
     public class SpectrumGenerator : MonoBehaviour
     {
         System.Random rand = new System.Random();
-        [SerializeField] private OceanParameters oceanParameters;
+
+        [SerializeField] private int oceanSize = 32;
+        [SerializeField] private float oceanScale = 1;
+        [SerializeField] private float waveAmplitude = 1;
+        [SerializeField] private Vector2 windSpeed = new Vector2(1,4);
+        const float GRAVITY = 9.81f;
         [SerializeField] public Texture2D spectrumTexture;
 
         public Vector4[,] spectrum;
@@ -16,8 +21,8 @@ namespace OceanSimulation
         void Start()
         {
             CalculateInitialSpectrum();
-            spectrumTexture = CreateTexture(oceanParameters.size);
-            timeSpectrum = new Vector2[oceanParameters.size,oceanParameters.size]; 
+            spectrumTexture = CreateTexture(oceanSize);
+            timeSpectrum = new Vector2[oceanSize, oceanSize]; 
 
             /* spectrumTexture = CreateTexture(oceanParameters.resolution);
             for (int i = 0; i < oceanParameters.resolution; i++)
@@ -35,9 +40,9 @@ namespace OceanSimulation
 
         void Update()
         {
-            for (int i = 0; i < oceanParameters.size; i++)
+            for (int i = 0; i < oceanSize; i++)
             {
-                for (int j = 0; j < oceanParameters.size; j++)
+                for (int j = 0; j < oceanSize; j++)
                 {
 
                     //spectrumTexture.SetPixel(i, j, spectrum[i,j]);
@@ -52,13 +57,13 @@ namespace OceanSimulation
 
         void CalculateInitialSpectrum()
         {
-            spectrum = new Vector4[oceanParameters.size, oceanParameters.size];
-            for (int i = 0; i < oceanParameters.size; i++)
+            spectrum = new Vector4[oceanSize, oceanSize];
+            for (int i = 0; i < oceanSize; i++)
             {
-                for (int j = 0; j < oceanParameters.size; j++)
+                for (int j = 0; j < oceanSize; j++)
                 {
                     Vector2 h = RandomTimesSpectrum(i, j);
-                    Vector2 minush = RandomTimesSpectrum(oceanParameters.size - i, oceanParameters.size - j);
+                    Vector2 minush = RandomTimesSpectrum(oceanSize - i, oceanSize - j);
                     spectrum[i, j] = new Vector4(h.x, h.y, minush.x, -minush.y);
                 }
             }
@@ -85,12 +90,12 @@ namespace OceanSimulation
         /// </summary>
         float CalcPM(int n_prime, int m_prime)
         {
-            Vector2 k = new Vector2(Mathf.PI * (2 * n_prime - oceanParameters.size) / oceanParameters.lengthScale, Mathf.PI * (2 * m_prime - oceanParameters.size) / oceanParameters.lengthScale);
+            Vector2 k = new Vector2(Mathf.PI * (2 * n_prime - oceanSize) / oceanScale, Mathf.PI * (2 * m_prime - oceanSize) / oceanScale);
             float kLength = k.magnitude * 250;
             if (kLength < 0.000001f) return 0.0f;
-            float omega = Frequency(kLength, oceanParameters.depth);
-            float peakOmega = PiersonMoskowitzPeakOmega(oceanParameters.windSpeed.magnitude);
-            float k_dot_w = Vector2.Dot(k.normalized, oceanParameters.windSpeed.normalized);
+            float omega = Frequency(kLength, 100); //ocean depth
+            float peakOmega = PiersonMoskowitzPeakOmega(windSpeed.magnitude);
+            float k_dot_w = Vector2.Dot(k.normalized, windSpeed.normalized);
             float k_dot_w2 = k_dot_w * k_dot_w * k_dot_w * k_dot_w * k_dot_w * k_dot_w;
             return PiersonMoskowitz(omega, peakOmega, k_dot_w2);
         }
@@ -101,15 +106,15 @@ namespace OceanSimulation
         //https://uwaterloo.ca/applied-mathematics/current-undergraduates/continuum-and-fluid-mechanics-students/amath-463-students/surface-gravity-waves
         float Frequency(float k, float depth)
         {
-            float dispersion = OceanParameters.GRAVITY * k;
-            float surfaceTension = OceanParameters.sigmaOverRho * k * k * k;
+            float dispersion = GRAVITY * k;
+            float surfaceTension = 0.000074f * k * k * k;
             float result = Mathf.Sqrt((dispersion + surfaceTension) * (float)Math.Tanh(Mathf.Min(k * depth, 10)));
             return result;
         }
         float PiersonMoskowitzPeakOmega(float u)
         {
             float nu = 0.13f;
-            return 2 * Mathf.PI * nu * OceanParameters.GRAVITY / u;
+            return 2 * Mathf.PI * nu * GRAVITY / u;
         }
 
 
@@ -119,7 +124,7 @@ namespace OceanSimulation
             float oneOverOmega = 1 / omega;
             float peakOmegaOverOmega = peakOmega / omega;
 
-            return oceanParameters.waveAmplitude * 100000 * 8.1e-3f * OceanParameters.GRAVITY * OceanParameters.GRAVITY * oneOverOmega * oneOverOmega * oneOverOmega * oneOverOmega * oneOverOmega
+            return waveAmplitude * 100000 * 8.1e-3f * GRAVITY * GRAVITY * oneOverOmega * oneOverOmega * oneOverOmega * oneOverOmega * oneOverOmega
                 * Mathf.Exp(-1.25f * peakOmegaOverOmega * peakOmegaOverOmega * peakOmegaOverOmega * peakOmegaOverOmega) * angle;
         }
         Texture2D CreateTexture(int dim)
@@ -129,7 +134,7 @@ namespace OceanSimulation
 
         Vector2 TimeSpectrum(float t, int n_prime, int m_prime)
         {
-            Vector2 k = new Vector2(Mathf.PI * (2 * n_prime - oceanParameters.size) / oceanParameters.lengthScale, Mathf.PI * (2 * m_prime - oceanParameters.size) / oceanParameters.lengthScale);
+            Vector2 k = new Vector2(Mathf.PI * (2 * n_prime - oceanSize) / oceanScale, Mathf.PI * (2 * m_prime - oceanSize) / oceanScale);
 
             //dispersion
             float omegat = Dispersion(k.magnitude) * t;
@@ -145,7 +150,7 @@ namespace OceanSimulation
         float Dispersion(float kLen)
         {
             float w_0 = 2.0f * Mathf.PI / 200.0f;
-            return Mathf.Floor(Mathf.Sqrt(OceanParameters.GRAVITY * kLen) / w_0) * w_0;
+            return Mathf.Floor(Mathf.Sqrt(GRAVITY * kLen) / w_0) * w_0;
         }
 
         Vector2 ComplexMultiply(float a0, float b0, float a1, float b1)

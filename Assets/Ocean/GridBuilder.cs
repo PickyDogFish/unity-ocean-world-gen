@@ -2,20 +2,14 @@ using UnityEngine;
 
 public class GridBuilder : MonoBehaviour
 {
-
-    [SerializeField] private OceanParameters oceanParameters;
-    [SerializeField] private bool useOverride = false;
-    [SerializeField] private int sizeOverride = -1;
+    [SerializeField] private int size = -1;
 
     private void Start()
     {
         Debug.Log("setting mesh");
         //TODO check if MeshFilter component exists
-        if (useOverride){
-            GetComponentInChildren<MeshFilter>().mesh = BuildPlane(sizeOverride, sizeOverride, Vector3.zero);
-        } else {
-            GetComponentInChildren<MeshFilter>().mesh = BuildPlane(oceanParameters.size, oceanParameters.size, Vector3.zero);
-        }
+
+        GetComponentInChildren<MeshFilter>().mesh = BuildPlane(size, size, Vector3.zero);
         //GetComponentInChildren<MeshFilter>().mesh = BuildRing(128);
         //GetComponentInChildren<MeshFilter>().mesh = BuildClipMap(16, 3);
 
