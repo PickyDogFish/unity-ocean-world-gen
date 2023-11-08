@@ -7,7 +7,7 @@ Shader "Custom/FFTWater"
     {
         // SubShader Tags define when and under which conditions a SubShader block or
         // a pass is executed.
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
+        Tags { "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" "Queue" = "Geometry+1"}
 
         Pass
         {
@@ -21,6 +21,8 @@ Shader "Custom/FFTWater"
 
             // Pull in URP library functions and our own common functions
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+
 
             float _Displacement;
 
@@ -39,26 +41,28 @@ Shader "Custom/FFTWater"
             struct v2f{
                 float3 positionOS : POSITION1;
                 float4 positionCS : SV_POSITION;
-                float2 uv: TEXCOORD0;
+                float2 uv : TEXCOORD0;
                 float3 positionWS : TEXCOORD1;
                 float3 normalWS : TEXCOORD2;
+                float4 screenPos : TEXCOORD3;
             };
 
 
             v2f vert(Attributes input){
                 v2f output;
+                float3 normal = _NormalMap.SampleLevel(sampler_NormalMap, input.uv, 0.0f);
+                output.normalWS = normal;
                 
                 float3 height = _HeightMap.SampleLevel(sampler_HeightMap, input.uv, 0.0f);
                 input.position += height.yxz;
-                VertexPositionInputs posInputs = GetVertexPositionInputs(input.position);
                 
-                float3 normal = _NormalMap.SampleLevel(sampler_NormalMap, input.uv, 0.0f);
-                output.normalWS = normal;
+                VertexPositionInputs posInputs = GetVertexPositionInputs(input.position);
 
                 output.positionCS = posInputs.positionCS;
                 output.uv = TRANSFORM_TEX(input.uv, _HeightMap);
                 output.positionWS = posInputs.positionWS;
-                output.positionOS = input.position;
+                output.screenPos = ComputeScreenPos(output.positionCS);
+
                 return output; 
             }
 
@@ -72,7 +76,10 @@ Shader "Custom/FFTWater"
                 float3 lambert = diffuseColor * saturate(dot(_MainLightPosition, input.normalWS));
                 float3 specular = LightingSpecular(_MainLightColor.rgb, _MainLightPosition, input.normalWS, viewDir, specularColor, 25);
                 float3 finalColor = ambientColor + lambert + specular;
-                return saturate(float4(finalColor, 0));
+
+                float depth = _CameraDepthTexture.Sample(sampler_CameraDepthTexture, input.screenPos);
+
+                return saturate(float4(finalColor,0));
             }
             ENDHLSL
         }

@@ -8,8 +8,8 @@ public class GridBuilder : MonoBehaviour
     {
         Debug.Log("setting mesh");
         //TODO check if MeshFilter component exists
-
-        GetComponentInChildren<MeshFilter>().mesh = BuildPlane(size, size, Vector3.zero);
+        Debug.Assert(GetComponent<MeshFilter>() != null);
+        GetComponent<MeshFilter>().mesh = BuildPlane(size, size, Vector3.zero);
         //GetComponentInChildren<MeshFilter>().mesh = BuildRing(128);
         //GetComponentInChildren<MeshFilter>().mesh = BuildClipMap(16, 3);
 

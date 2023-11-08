@@ -12,7 +12,6 @@ public class FFTWater : MonoBehaviour
     [Header("Initial spectrum settings")]
     [SerializeField] private ComputeShader spectrumCS;
     private RenderTexture initialSpectrumTex;
-    private RenderTexture timeSpectrumTex;
     [SerializeField] private SpectrumType spectrumType;
     [SerializeField] private float windAngle = 0;
     [SerializeField] private float windMagnitude = 8;
@@ -83,11 +82,14 @@ public class FFTWater : MonoBehaviour
             CalculateConjugatedSpectrum();
         }
 
-        if (updateOcean){
+        if (updateOcean)
+        {
             FFTCS.SetVector("_Lambda", displacementStrength);
             FFTCS.SetFloat("_NormalStrength", normalStrength);
         }
 
+        SetMaterialVariables();
+        
         CalculateTimeSpectrum();
 
         InverseFFT(htildeTex);
@@ -99,7 +101,8 @@ public class FFTWater : MonoBehaviour
         AssembleMaps();
     }
 
-    void AssembleMaps(){
+    void AssembleMaps()
+    {
         FFTCS.SetTexture(CSKernels.assembleMapsKernel, "_HTildeTex", htildeTex);
         FFTCS.SetTexture(CSKernels.assembleMapsKernel, "_HTildeSlopeXTex", htildeSlopeXTex);
         FFTCS.SetTexture(CSKernels.assembleMapsKernel, "_HTildeSlopeZTex", htildeSlopeZTex);
@@ -113,7 +116,6 @@ public class FFTWater : MonoBehaviour
     void InitializeRenderTextures()
     {
         initialSpectrumTex = CreateRenderTex(FFTSize, FFTSize, RenderTextureFormat.ARGBHalf);
-        timeSpectrumTex = CreateRenderTex(FFTSize, FFTSize, RenderTextureFormat.RGHalf);
         htildeTex = CreateRenderTex(FFTSize, FFTSize, RenderTextureFormat.RGHalf);
         htildeSlopeXTex = CreateRenderTex(FFTSize, FFTSize, RenderTextureFormat.RGHalf);
         htildeSlopeZTex = CreateRenderTex(FFTSize, FFTSize, RenderTextureFormat.RGHalf);
@@ -208,7 +210,8 @@ public class FFTWater : MonoBehaviour
         return rt;
     }
 
-    private static class CSKernels{
+    private static class CSKernels
+    {
         public static readonly int twiddlePrecomputeKernel = 0;
         public static readonly int horizontalIFFTKernel = 1;
         public static readonly int verticalIFFTKernel = 2;
@@ -221,6 +224,6 @@ public class FFTWater : MonoBehaviour
         public static readonly int conjugateKernel = 1;
         public static readonly int DFTTimeKernel = 2;
         public static readonly int FFTTimeKernel = 3;
-    } 
+    }
 
 }
