@@ -22,6 +22,7 @@ Shader "Custom/FFTWater"
             // Pull in URP library functions and our own common functions
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
 
 
             float _Displacement;
@@ -39,12 +40,10 @@ Shader "Custom/FFTWater"
             };
 
             struct v2f{
-                float3 positionOS : POSITION1;
-                float4 positionCS : SV_POSITION;
+                float4 positionHCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
                 float3 positionWS : TEXCOORD1;
                 float3 normalWS : TEXCOORD2;
-                float4 screenPos : TEXCOORD3;
             };
 
 
@@ -58,26 +57,37 @@ Shader "Custom/FFTWater"
                 
                 VertexPositionInputs posInputs = GetVertexPositionInputs(input.position);
 
-                output.positionCS = posInputs.positionCS;
+                output.positionHCS = TransformObjectToHClip(input.position.xyz);;
                 output.uv = TRANSFORM_TEX(input.uv, _HeightMap);
                 output.positionWS = posInputs.positionWS;
-                output.screenPos = ComputeScreenPos(output.positionCS);
 
                 return output; 
             }
 
-            float4 frag(v2f input) : SV_TARGET{
+            float4 frag(v2f IN) : SV_TARGET{
                 float3 diffuseColor = float3(0.1,0.2,0.8);
                 float4 specularColor = float4(diffuseColor, 1);
                 float3 ambientColor = diffuseColor;
 
-                float3 viewDir = normalize(_WorldSpaceCameraPos - input.positionWS);
-                //saturate because dot() is negative half the time
-                float3 lambert = diffuseColor * saturate(dot(_MainLightPosition, input.normalWS));
-                float3 specular = LightingSpecular(_MainLightColor.rgb, _MainLightPosition, input.normalWS, viewDir, specularColor, 25);
-                float3 finalColor = ambientColor + lambert + specular;
 
-                float depth = _CameraDepthTexture.Sample(sampler_CameraDepthTexture, input.screenPos);
+                float2 screenUV = IN.positionHCS.xy / _ScaledScreenParams.xy;
+                #if UNITY_REVERSED_Z
+                    float depth = SampleSceneDepth(screenUV);
+                #else
+                    // Adjust z to match NDC for OpenGL
+                    float depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(screenUV));
+                #endif
+                float3 WPFromDepth = ComputeWorldSpacePosition(screenUV, depth, UNITY_MATRIX_I_VP);
+                float depthDif = length(WPFromDepth - IN.positionWS);
+
+                float3 backgroundColor = SampleSceneColor(screenUV);
+
+
+                float3 viewDir = normalize(_WorldSpaceCameraPos - IN.positionWS);
+                //saturate because dot() is negative half the time
+                float3 lambert = diffuseColor * saturate(dot(_MainLightPosition, IN.normalWS));
+                float3 specular = LightingSpecular(_MainLightColor.rgb, _MainLightPosition, IN.normalWS, viewDir, specularColor, 25);
+                float3 finalColor = ambientColor + lambert + specular;
 
                 return saturate(float4(finalColor,0));
             }
