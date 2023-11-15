@@ -11,7 +11,8 @@ Shader "Custom/FFTOcean"
 
         Pass
         {
-            //Tags { "LightMode" = "OceanMain"}
+            //can be used to tell unity not to render the pass on a frame/draw it during a given call to ScriptableRenderContext.DrawRendereres
+            Tags { "LightMode" = "OceanMain"}
             Name "Ocean pass"
             // The HLSL code block. Unity SRP uses the HLSL language.
             HLSLPROGRAM
