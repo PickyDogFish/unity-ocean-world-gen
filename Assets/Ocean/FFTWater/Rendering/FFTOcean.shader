@@ -14,6 +14,7 @@ Shader "Custom/FFTOcean"
             //can be used to tell unity not to render the pass on a frame/draw it during a given call to ScriptableRenderContext.DrawRendereres
             Tags { "LightMode" = "OceanMain"}
             Name "Ocean pass"
+            Cull Off //turn off backface culling
             // The HLSL code block. Unity SRP uses the HLSL language.
             HLSLPROGRAM
             // This line defines the name of the vertex shader.
@@ -71,7 +72,7 @@ Shader "Custom/FFTOcean"
                 return lerp(fogColor.rgb, backgroundColor, fogFactor);
             }
 
-            float4 frag(v2f IN) : SV_TARGET{
+            float4 frag(v2f IN, float facing : VFACE) : SV_TARGET{
                 float3 diffuseColor = float3(0.1,0.2,0.8);
                 float4 specularColor = float4(diffuseColor, 1);
                 float3 ambientColor = diffuseColor;
@@ -94,11 +95,16 @@ Shader "Custom/FFTOcean"
 
                 float3 viewDir = normalize(_WorldSpaceCameraPos - IN.positionWS);
                 //saturate because dot() is negative half the time
-                float3 lambert = diffuseColor * saturate(dot(_MainLightPosition, IN.normalWS));
+                float3 lambert = colorThroughWater * saturate(dot(_MainLightPosition, IN.normalWS));
                 float3 specular = LightingSpecular(_MainLightColor.rgb, _MainLightPosition, IN.normalWS, viewDir, specularColor, 25);
-                float3 finalColor = ambientColor + lambert + specular;
-
-                return saturate(float4(colorThroughWater + specular,1));
+                //float3 finalColor = ambientColor + lambert + specular;
+                float3 finalColor = colorThroughWater + specular;
+                
+                //If looking at the back face
+                if (facing < 0 ){
+                    finalColor = diffuseColor;
+                }
+                return saturate(float4(finalColor,1));
             
             }
             ENDHLSL
