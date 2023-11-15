@@ -7,7 +7,7 @@ Shader "Custom/FFTOcean"
     {
         // SubShader Tags define when and under which conditions a SubShader block or
         // a pass is executed.
-        Tags {"RenderPipeline" = "UniversalPipeline"}
+        Tags {"RenderPipeline" = "UniversalPipeline" "RenderType"="Transparent" "Queue"="Transparent"}
 
         Pass
         {
@@ -66,10 +66,17 @@ Shader "Custom/FFTOcean"
                 return output; 
             }
 
+            float3 ColorThroughWater(float4 fogColor, float3 backgroundColor, float depth){
+                float fogFactor = exp2(-fogColor.a * depth);
+                return lerp(fogColor.rgb, backgroundColor, fogFactor);
+            }
+
             float4 frag(v2f IN) : SV_TARGET{
                 float3 diffuseColor = float3(0.1,0.2,0.8);
                 float4 specularColor = float4(diffuseColor, 1);
                 float3 ambientColor = diffuseColor;
+
+                float4 fogColor = float4(diffuseColor, 0.05);
 
 
                 float2 screenUV = IN.positionHCS.xy / _ScaledScreenParams.xy;
@@ -83,7 +90,7 @@ Shader "Custom/FFTOcean"
                 float depthDif = length(WPFromDepth - IN.positionWS);
 
                 float3 backgroundColor = SampleSceneColor(screenUV);
-
+                float3 colorThroughWater = ColorThroughWater(fogColor, backgroundColor, depthDif);
 
                 float3 viewDir = normalize(_WorldSpaceCameraPos - IN.positionWS);
                 //saturate because dot() is negative half the time
@@ -91,7 +98,8 @@ Shader "Custom/FFTOcean"
                 float3 specular = LightingSpecular(_MainLightColor.rgb, _MainLightPosition, IN.normalWS, viewDir, specularColor, 25);
                 float3 finalColor = ambientColor + lambert + specular;
 
-                return saturate(float4(finalColor,1));
+                return saturate(float4(colorThroughWater + specular,1));
+            
             }
             ENDHLSL
         }

@@ -47,6 +47,7 @@ public class OceanPass : ScriptableRenderPass
 
             using (new ProfilingScope(cmd, m_ProfilingSampler)){
                 drawingSettings.perObjectData = PerObjectData.LightProbe;
+                //Drawing shaders with tag "OceanMain", as defined in drawingSettings
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref _filteringSettings);
             }
             //Blit(cmd, source, tempTexture.Identifier());

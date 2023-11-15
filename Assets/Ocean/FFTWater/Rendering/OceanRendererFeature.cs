@@ -20,7 +20,7 @@ public class OceanRendererFeature : ScriptableRendererFeature
     // This method is called when setting up the renderer once per-camera.
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        if (renderingData.cameraData.cameraType == CameraType.Game){
+        if (renderingData.cameraData.cameraType == CameraType.Game || renderingData.cameraData.cameraType == CameraType.SceneView){
             material = CoreUtils.CreateEngineMaterial(waterShader);
             m_WaterPass.ConfigureInput(ScriptableRenderPassInput.Color);
             m_WaterPass.SetTarget(renderer.cameraColorTarget);
