@@ -1,5 +1,5 @@
 // This shader fills the mesh shape with a color predefined in the code.
-Shader "Custom/FFTWater"
+Shader "Custom/FFTOcean"
 {
 
     // The SubShader block containing the Shader code.
@@ -7,10 +7,11 @@ Shader "Custom/FFTWater"
     {
         // SubShader Tags define when and under which conditions a SubShader block or
         // a pass is executed.
-        Tags { "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" "Queue" = "Geometry+1"}
+        Tags {"RenderPipeline" = "UniversalPipeline"}
 
         Pass
         {
+            //Tags { "LightMode" = "OceanMain"}
             Name "Ocean pass"
             // The HLSL code block. Unity SRP uses the HLSL language.
             HLSLPROGRAM
@@ -89,7 +90,7 @@ Shader "Custom/FFTWater"
                 float3 specular = LightingSpecular(_MainLightColor.rgb, _MainLightPosition, IN.normalWS, viewDir, specularColor, 25);
                 float3 finalColor = ambientColor + lambert + specular;
 
-                return saturate(float4(finalColor,0));
+                return saturate(float4(finalColor,1));
             }
             ENDHLSL
         }
