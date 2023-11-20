@@ -17,15 +17,7 @@ public class GridBuilder : MonoBehaviour
     //amount of overlap between the rings
     private const int _overlap = 2;
 
-    private static class GlobalShaderVariables
-    {
-        public static readonly int ViewerPosition = Shader.PropertyToID("ClipMap_ViewerPosition");
-        public static readonly int Scale = Shader.PropertyToID("ClipMap_Scale");
-        public static readonly int LevelHalfSize = Shader.PropertyToID("ClipMap_LevelHalfSize");
-    }
-
     public static int ClipLevelHalfSize(int vertexDensity) => (vertexDensity + 1) * 4 - 1;
-
 
     public static Mesh BuildClipMap(int vertexDensity, int clipMapLevels)
     {
@@ -47,9 +39,6 @@ public class GridBuilder : MonoBehaviour
             combine[i + 1].mesh = ring;
             combine[i + 1].transform = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one * Mathf.Pow(2, i));
         }
-
-        //combine[1].mesh = BuildPlane(clipLevelHalfSize, clipLevelHalfSize, Vector3.zero);
-        //combine[1].transform = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one);
 
         mesh.CombineMeshes(combine, true);
         return mesh;
