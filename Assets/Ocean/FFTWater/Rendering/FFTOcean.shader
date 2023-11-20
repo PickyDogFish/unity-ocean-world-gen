@@ -72,12 +72,18 @@ Shader "Custom/FFTOcean"
                 return lerp(fogColor.rgb, backgroundColor, fogFactor);
             }
 
+            float SchlickFresnel(float3 normal, float3 viewDir){
+                float R0 = 0.308641975308642;
+                float exponential = pow(1- dot(normal, viewDir), 5);
+                return exponential + R0 * (1.0 - exponential);
+            }
+
             float4 frag(v2f IN, float facing : VFACE) : SV_TARGET{
                 float3 diffuseColor = float3(0.1,0.2,0.8);
-                float4 specularColor = float4(diffuseColor, 1);
+                float4 specularColor = float4(0.85,0.85,0.95, 1);
                 float3 ambientColor = diffuseColor;
 
-                float4 fogColor = float4(diffuseColor, 0.05);
+                float4 fogColor = float4(diffuseColor, 0.1);
 
 
                 float2 screenUV = IN.positionHCS.xy / _ScaledScreenParams.xy;
@@ -94,11 +100,16 @@ Shader "Custom/FFTOcean"
                 float3 colorThroughWater = ColorThroughWater(fogColor, backgroundColor, depthDif);
 
                 float3 viewDir = normalize(_WorldSpaceCameraPos - IN.positionWS);
+                float3 lightDir = _MainLightPosition;
+                float3 halfwayDir = normalize(viewDir + lightDir);
+                
                 //saturate because dot() is negative half the time
-                float3 lambert = colorThroughWater * saturate(dot(_MainLightPosition, IN.normalWS));
-                float3 specular = LightingSpecular(_MainLightColor.rgb, _MainLightPosition, IN.normalWS, viewDir, specularColor, 25);
+                float3 lambert = colorThroughWater * saturate(dot(lightDir, IN.normalWS));
+                float specular = SchlickFresnel(IN.normalWS, viewDir) * 0.05 + pow(dot(halfwayDir, IN.normalWS), 5) * 0.2; //LightingSpecular(_MainLightColor.rgb, _MainLightPosition, IN.normalWS, viewDir, specularColor, 25);
                 //float3 finalColor = ambientColor + lambert + specular;
                 float3 finalColor = colorThroughWater + specular;
+                //float3 finalColor = specular;
+
                 
                 //If looking at the back face
                 if (facing < 0 ){

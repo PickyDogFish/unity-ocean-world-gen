@@ -505,6 +505,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   size: 64
+  scale: 1
 --- !u!23 &462530889
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -738,7 +739,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 125d38e7eba71d7429e7bdfaff43971d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: 128
+  size: 512
+  scale: 0.25
 --- !u!23 &1023640317
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -908,6 +910,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   size: 64
+  scale: 1
 --- !u!114 &1890975384
 MonoBehaviour:
   m_ObjectHideFlags: 0

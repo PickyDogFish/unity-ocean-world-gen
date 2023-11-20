@@ -3,13 +3,14 @@ using UnityEngine;
 public class GridBuilder : MonoBehaviour
 {
     [SerializeField] private int size = -1;
+    [SerializeField] private float scale = 1;
 
     private void Start()
     {
         Debug.Log("setting mesh");
         //TODO check if MeshFilter component exists
         Debug.Assert(GetComponent<MeshFilter>() != null);
-        GetComponent<MeshFilter>().mesh = BuildPlane(size, size, Vector3.zero);
+        GetComponent<MeshFilter>().mesh = BuildPlane(size, size, Vector3.zero, scale);
         //GetComponentInChildren<MeshFilter>().mesh = BuildRing(128);
         //GetComponentInChildren<MeshFilter>().mesh = BuildClipMap(16, 3);
 
@@ -104,7 +105,7 @@ public class GridBuilder : MonoBehaviour
         return mesh;
     }
 
-    public static Mesh BuildPlane(int width, int height, Vector3 pivot)
+    public static Mesh BuildPlane(int width, int height, Vector3 pivot, float scale = 1)
     {
         Mesh mesh = new Mesh();
         mesh.name = "Clipmap plane";
@@ -118,7 +119,7 @@ public class GridBuilder : MonoBehaviour
         {
             for (int x = 0; x < width + 1; x++)
             {
-                Vector3 normalPosition = new Vector3(x, 1, z);
+                Vector3 normalPosition = new Vector3(x * scale, 1, z * scale);
                 verts[x + z * (width + 1)] = normalPosition - pivot;
                 normals[x + z * (width + 1)] = Vector3.up;
                 uvs[x + z * (width + 1)] = new Vector2((float)x/width, (float)z/width);
