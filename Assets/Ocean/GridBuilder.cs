@@ -2,17 +2,14 @@ using UnityEngine;
 
 public class GridBuilder : MonoBehaviour
 {
-    [SerializeField] private int size = -1;
-    [SerializeField] private float scale = 1;
+    [SerializeField] private int clipMapLevels = 4;
+    [SerializeField] private int clipMapVertexDensity = 16;
 
     private void Start()
     {
         Debug.Log("setting mesh");
-        //TODO check if MeshFilter component exists
         Debug.Assert(GetComponent<MeshFilter>() != null);
-        //GetComponent<MeshFilter>().mesh = BuildPlane(size, size, Vector3.zero, scale);
-        //GetComponentInChildren<MeshFilter>().mesh = BuildRing(128);
-        GetComponentInChildren<MeshFilter>().mesh = BuildClipMap(16, 3);
+        GetComponentInChildren<MeshFilter>().mesh = BuildClipMap(clipMapVertexDensity, clipMapLevels);
 
     }
 
@@ -39,7 +36,7 @@ public class GridBuilder : MonoBehaviour
         CombineInstance[] combine = new CombineInstance[clipMapLevels + 1];
 
         //the middle plane
-        combine[0].mesh = BuildPlane(2 * clipLevelHalfSize + _overlap, 2 * clipLevelHalfSize + _overlap, new Vector3(1,0,1) * (clipLevelHalfSize+1));
+        combine[0].mesh = BuildPlane(clipLevelHalfSize + _overlap,clipLevelHalfSize + _overlap, new Vector3(1,0,1) * (clipLevelHalfSize+1)/2);
         combine[0].transform = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one);
 
 
@@ -68,7 +65,7 @@ public class GridBuilder : MonoBehaviour
 
         CombineInstance[] combine = new CombineInstance[8];
 
-        Vector3 pivot = (Vector3.right + Vector3.forward) * (longSide + 1);
+        Vector3 pivot = new Vector3(1,0,1) * (longSide + 1);
         //bottom left
         combine[0].mesh = BuildPlane(shortSide, shortSide, pivot);
         combine[0].transform = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one);
@@ -119,7 +116,7 @@ public class GridBuilder : MonoBehaviour
         {
             for (int x = 0; x < width + 1; x++)
             {
-                Vector3 normalPosition = new Vector3(x * scale, 1, z * scale);
+                Vector3 normalPosition = new Vector3(x * scale, 0, z * scale);
                 verts[x + z * (width + 1)] = normalPosition - pivot;
                 normals[x + z * (width + 1)] = Vector3.up;
                 uvs[x + z * (width + 1)] = new Vector2((float)x/width, (float)z/width);
