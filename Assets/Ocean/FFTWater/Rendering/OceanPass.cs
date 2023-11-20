@@ -64,3 +64,56 @@ public class OceanPass : ScriptableRenderPass
             cmd.ReleaseTemporaryRT(tempTexture.id);
         }
     }
+
+ public class OceanUnderwaterEffectPass : ScriptableRenderPass
+    {
+        //private readonly OceanRendererFeature.OceanRenderingSettings _settings;
+        private readonly Material _underwaterEffectMaterial;
+        private RenderTargetIdentifier _submergenceTarget;
+        private static readonly int _submergenceTargetID = Shader.PropertyToID("SubmergenceTarget");
+        public static readonly int SubmergenceTexture = Shader.PropertyToID("Ocean_CameraSubmergenceTexture");
+        
+
+        public OceanUnderwaterEffectPass()
+        {
+            renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
+            _underwaterEffectMaterial = new Material(Shader.Find("Ocean/UnderwaterEffect"));
+        }
+
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            cmd.GetTemporaryRT(_submergenceTargetID, 32, 32, 0, FilterMode.Bilinear, RenderTextureFormat.R8, RenderTextureReadWrite.Linear, 1);
+            _submergenceTarget = new RenderTargetIdentifier(_submergenceTargetID);
+            ConfigureTarget(_submergenceTarget);
+        }
+
+        private void DrawProceduralFullscreenQuad(CommandBuffer cmd, RenderTargetIdentifier target,
+            RenderBufferLoadAction loadAction, Material material, int pass)
+        {
+            cmd.SetRenderTarget(target, loadAction, RenderBufferStoreAction.Store);
+            cmd.DrawProcedural(Matrix4x4.identity, material, pass, MeshTopology.Quads, 4, 1, null);
+        }
+
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            CameraData cameraData = renderingData.cameraData;
+            //if (!OceanRendererFeature.IsCorrectCameraType(cameraData.cameraType)) return;
+
+            //Drawing the fullscreen quad
+            CommandBuffer cmd = CommandBufferPool.Get("Underwater Effect");
+            DrawProceduralFullscreenQuad(cmd, _submergenceTarget,
+                RenderBufferLoadAction.DontCare, _underwaterEffectMaterial, 0);
+            cmd.SetGlobalTexture(SubmergenceTexture, _submergenceTargetID);
+
+            DrawProceduralFullscreenQuad(cmd, cameraData.renderer.cameraColorTarget,
+                RenderBufferLoadAction.Load, _underwaterEffectMaterial, 1);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+
+        }
+
+        public override void FrameCleanup(CommandBuffer cmd)
+        {
+            cmd.ReleaseTemporaryRT(_submergenceTargetID);
+        }
+    }

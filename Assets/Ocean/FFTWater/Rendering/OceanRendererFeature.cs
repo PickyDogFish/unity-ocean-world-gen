@@ -6,14 +6,15 @@ public class OceanRendererFeature : ScriptableRendererFeature
 {
     public Shader waterShader;
     OceanPass m_WaterPass;
+    OceanUnderwaterEffectPass m_UnderwaterPass;
     private Material material;
 
-    /// <inheritdoc/>
     public override void Create()
     {
         name = "Ocean";
         // Configures where the render pass should be injected.
         m_WaterPass = new OceanPass(material);
+        m_UnderwaterPass = new OceanUnderwaterEffectPass();
     }
 
     // Here you can inject one or multiple render passes in the renderer.
@@ -25,6 +26,8 @@ public class OceanRendererFeature : ScriptableRendererFeature
             m_WaterPass.ConfigureInput(ScriptableRenderPassInput.Color);
             m_WaterPass.SetTarget(renderer.cameraColorTarget);
             renderer.EnqueuePass(m_WaterPass);
+
+            //renderer.EnqueuePass(m_UnderwaterPass);
         }
     }
 
