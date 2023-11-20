@@ -10,15 +10,15 @@ public class GridBuilder : MonoBehaviour
         Debug.Log("setting mesh");
         //TODO check if MeshFilter component exists
         Debug.Assert(GetComponent<MeshFilter>() != null);
-        GetComponent<MeshFilter>().mesh = BuildPlane(size, size, Vector3.zero, scale);
+        //GetComponent<MeshFilter>().mesh = BuildPlane(size, size, Vector3.zero, scale);
         //GetComponentInChildren<MeshFilter>().mesh = BuildRing(128);
-        //GetComponentInChildren<MeshFilter>().mesh = BuildClipMap(16, 3);
+        GetComponentInChildren<MeshFilter>().mesh = BuildClipMap(16, 3);
 
     }
 
 
     //amount of overlap between the rings
-    private const int Overlap = 2;
+    private const int _overlap = 2;
 
     private static class GlobalShaderVariables
     {
@@ -39,7 +39,7 @@ public class GridBuilder : MonoBehaviour
         CombineInstance[] combine = new CombineInstance[clipMapLevels + 1];
 
         //the middle plane
-        combine[0].mesh = BuildPlane(clipLevelHalfSize, clipLevelHalfSize, new Vector3(1,0,1) * (clipLevelHalfSize+1)/2);
+        combine[0].mesh = BuildPlane(2 * clipLevelHalfSize + _overlap, 2 * clipLevelHalfSize + _overlap, new Vector3(1,0,1) * (clipLevelHalfSize+1));
         combine[0].transform = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one);
 
 
@@ -63,7 +63,7 @@ public class GridBuilder : MonoBehaviour
         Mesh mesh = new Mesh();
         mesh.name = "clipmap ring";
 
-        int shortSide = (clipLevelHalfSize + 1) / 2;
+        int shortSide = (clipLevelHalfSize + 1) / 2 + _overlap;
         int longSide = clipLevelHalfSize + 1;
 
         CombineInstance[] combine = new CombineInstance[8];

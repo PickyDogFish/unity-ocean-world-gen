@@ -52,13 +52,14 @@ Shader "Custom/FFTOcean"
 
             v2f vert(Attributes input){
                 v2f output;
-                float3 normal = _NormalMap.SampleLevel(sampler_NormalMap, input.uv, 0.0f);
+                float2 worldUV = TransformObjectToWorld(input.position).xz / 100.0;
+                float3 normal = _NormalMap.SampleLevel(sampler_NormalMap, worldUV, 0.0f);
                 output.normalWS = normal;
                 
-                float3 height = _HeightMap.SampleLevel(sampler_HeightMap, input.uv, 0.0f);
+                float3 height = _HeightMap.SampleLevel(sampler_HeightMap, worldUV, 0.0f);
                 input.position += height.yxz;
-                
                 VertexPositionInputs posInputs = GetVertexPositionInputs(input.position);
+                
 
                 output.positionHCS = TransformObjectToHClip(input.position.xyz);;
                 output.uv = TRANSFORM_TEX(input.uv, _HeightMap);

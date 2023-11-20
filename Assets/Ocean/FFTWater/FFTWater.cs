@@ -123,7 +123,9 @@ public class FFTWater : MonoBehaviour
         htildeDisplacementZTex = CreateRenderTex(FFTSize, FFTSize, RenderTextureFormat.RGHalf);
         pingPongTex = CreateRenderTex(FFTSize, FFTSize, RenderTextureFormat.RGHalf);
         heightTex = CreateRenderTex(FFTSize, FFTSize, RenderTextureFormat.ARGBHalf);
+        heightTex.wrapMode = TextureWrapMode.Repeat;
         normalTex = CreateRenderTex(FFTSize, FFTSize, RenderTextureFormat.ARGBHalf);
+        normalTex.wrapMode = TextureWrapMode.Repeat;
         twiddleTex = CreateRenderTex(logN, FFTSize, RenderTextureFormat.ARGBHalf);
     }
 
