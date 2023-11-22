@@ -12,9 +12,9 @@ Shader "Ocean/UnderwaterEffect"
             #include "FullscreenVert.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
-
-            TEXTURE2D(Ocean_CameraSubmergenceTexture);
-            SAMPLER(samplerOcean_CameraSubmergenceTexture);
+            #include "OceanGlobals.hlsl"
+            #include "DisplacementSampler.hlsl"
+            
         ENDHLSL
 
         Pass
@@ -27,14 +27,14 @@ Shader "Ocean/UnderwaterEffect"
             #pragma vertex ProceduralFullscreenVert
             #pragma fragment SubmergenceFrag
 
-            float SubmergenceFrag(Varyings input) : SV_Target
+            float3 SubmergenceFrag(Varyings input) : SV_Target
             {
                 float4 positionCS = float4(input.uv * 2 - 1, UNITY_NEAR_CLIP_VALUE, 1);
                 float4 positionVS = mul(UNITY_MATRIX_I_VP, positionCS);
                 positionVS = positionVS / positionVS.w;
                 float4 positionWS = mul(UNITY_MATRIX_I_V, positionVS);
-                float waterHeight = 0.5;//SampleHeight(positionWS.xz, 1, 1);//ShoreModulation(SampleShore(pos.xz).r));
-                return positionWS.y;// - waterHeight + 0.5;
+                float waterHeight = SampleHeight(positionWS.xz, Ocean_WaveScale);//ShoreModulation(SampleShore(pos.xz).r));
+                return positionWS.y - waterHeight;
             }
 
             ENDHLSL
@@ -54,9 +54,9 @@ Shader "Ocean/UnderwaterEffect"
         half4 UnderwaterPostEffectFrag(Varyings input) : SV_Target
         {
             float submergence = SAMPLE_TEXTURE2D(Ocean_CameraSubmergenceTexture, samplerOcean_CameraSubmergenceTexture, input.uv).r;
-            //float safetyMargin = 0.05;
-            //clip(-(submergence - 0.5 > safetyMargin));
-            //float rawDepth = SampleSceneDepth(input.uv);
+            float safetyMargin = 0.05;
+            clip(-(submergence - 0.5 > safetyMargin));
+            float rawDepth = SampleSceneDepth(input.uv);
             //float4 positionCS = float4(input.uv * 2 - 1, rawDepth, 1);
             //float4 positionVS = mul(Ocean_InverseProjectionMatrix, positionCS);
             //positionVS /= positionVS.w;
@@ -76,7 +76,9 @@ Shader "Ocean/UnderwaterEffect"
             //Light mainLight = GetMainLight();
             //float3 volume = UnderwaterFogColor(viewDir, mainLight.direction, _WorldSpaceCameraPos.y);
             //float3 color = ColorThroughWater(backgroundColor, volume, viewDist - _ProjectionParams.y, -positionWS.y);
-            return float4(submergence, submergence, submergence, 1);
+
+            float3 backgroundColor = SampleSceneColor(input.uv);
+            return float4(backgroundColor * submergence + rawDepth * (1-submergence),0);// * submergence +  float3(0.3,0.5,0.9) * (1-submergence), 1);
         }
             ENDHLSL
         }

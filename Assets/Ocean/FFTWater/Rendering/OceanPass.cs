@@ -7,15 +7,11 @@ public class OceanPass : ScriptableRenderPass
     {
 
         ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Ocean");
-        private Material _waterMaterial;
-        private RenderTargetHandle tempTexture;
         private ShaderTagId OceanShaderTagId = new ShaderTagId("OceanMain");
         private FilteringSettings _filteringSettings;
 
-        RenderTargetIdentifier m_CameraColorTarget;
 
-        public OceanPass(Material mat){
-            _waterMaterial = mat;
+        public OceanPass(){
             renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
             _filteringSettings = new FilteringSettings(RenderQueueRange.all);
         }
@@ -28,11 +24,6 @@ public class OceanPass : ScriptableRenderPass
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
         }
-
-        public void SetTarget(RenderTargetIdentifier colorHandle)
-    {
-        m_CameraColorTarget = colorHandle;
-    }
 
 
         // Here you can implement the rendering logic.
@@ -51,17 +42,17 @@ public class OceanPass : ScriptableRenderPass
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref _filteringSettings);
             }
             //Blit(cmd, source, tempTexture.Identifier());
-
-            context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
             CommandBufferPool.Release(cmd);
+
+            context.ExecuteCommandBuffer(cmd);
+            context.Submit();
 
         }
 
         // Cleanup any allocated resources that were created during the execution of this render pass.
         public override void OnCameraCleanup(CommandBuffer cmd)
         {
-            cmd.ReleaseTemporaryRT(tempTexture.id);
         }
     }
 
@@ -108,8 +99,9 @@ public class OceanPass : ScriptableRenderPass
             DrawProceduralFullscreenQuad(cmd, cameraData.renderer.cameraColorTarget,
                 RenderBufferLoadAction.Load, _underwaterEffectMaterial, 1);
             context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
             CommandBufferPool.Release(cmd);
-
+            context.Submit();
         }
 
         public override void FrameCleanup(CommandBuffer cmd)

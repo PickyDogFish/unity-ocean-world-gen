@@ -697,6 +697,7 @@ MonoBehaviour:
   repeatTime: 200
   speed: 1
   lengthScale: 8
+  waveScale: 100
   material: {fileID: 2100000, guid: 7ad6da068747ed349b3e62eab558ffc5, type: 2}
   heightTex: {fileID: 0}
   normalTex: {fileID: 0}

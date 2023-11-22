@@ -7,7 +7,7 @@ Shader "Custom/FFTOcean"
     {
         // SubShader Tags define when and under which conditions a SubShader block or
         // a pass is executed.
-        Tags {"RenderPipeline" = "UniversalPipeline" "RenderType"="Transparent" "Queue"="Transparent"}
+        Tags {"RenderPipeline" = "UniversalPipeline"}
 
         Pass
         {
@@ -15,6 +15,7 @@ Shader "Custom/FFTOcean"
             Tags { "LightMode" = "OceanMain"}
             Name "Ocean pass"
             Cull Off //turn off backface culling
+            ZWrite On
             // The HLSL code block. Unity SRP uses the HLSL language.
             HLSLPROGRAM
             // This line defines the name of the vertex shader.
@@ -26,13 +27,11 @@ Shader "Custom/FFTOcean"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
+            #include "OceanGlobals.hlsl"
+            #include "DisplacementSampler.hlsl"
 
 
             float _Displacement;
-
-            TEXTURE2D(_HeightMap);
-            SAMPLER(sampler_HeightMap);
-            float4 _HeightMap_ST;
 
             TEXTURE2D(_NormalMap);
             SAMPLER(sampler_NormalMap);
@@ -53,10 +52,10 @@ Shader "Custom/FFTOcean"
             v2f vert(Attributes input){
                 v2f output;
                 float3 worldPos = TransformObjectToWorld(input.position);
-                float3 normal = _NormalMap.SampleLevel(sampler_NormalMap, worldPos.xz/100.0, 0.0f);
+                float3 normal = _NormalMap.SampleLevel(sampler_NormalMap, worldPos.xz / Ocean_WaveScale, 0.0f);
                 output.normalWS = normal;
                 
-                float3 displacement = _HeightMap.SampleLevel(sampler_HeightMap, worldPos.xz/100.0, 0.0f);
+                float3 displacement = _OceanDisplacementTex.SampleLevel(sampler_OceanDisplacementTex, worldPos.xz/Ocean_WaveScale, 0.0f);
                 
                 input.position += displacement.yxz;
                 
@@ -64,8 +63,6 @@ Shader "Custom/FFTOcean"
                 output.positionHCS = TransformObjectToHClip(input.position.xyz);;
                 output.positionWS = TransformObjectToWorld(input.position);
 
-                
-                output.uv = TRANSFORM_TEX(input.uv, _HeightMap);
                 return output; 
             }
 
@@ -112,6 +109,7 @@ Shader "Custom/FFTOcean"
                 float3 finalColor = colorThroughWater + specular;
                 //float3 finalColor = specular;
 
+                //finalColor = SampleHeight(IN.positionWS.xz, Ocean_WaveScale).xxx;
                 
                 //If looking at the back face
                 if (facing < 0 ){

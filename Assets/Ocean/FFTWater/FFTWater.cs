@@ -25,6 +25,8 @@ public class FFTWater : MonoBehaviour
     int threadGroupsX;
     int threadGroupsY;
     [SerializeField] private float lengthScale = 8;
+    //we divide world position by this number to get worldUVs
+    [SerializeField] private float waveScale = 100;
 
     [SerializeField] private Material material;
 
@@ -197,7 +199,9 @@ public class FFTWater : MonoBehaviour
 
     void SetMaterialVariables()
     {
-        material.SetTexture("_HeightMap", heightTex);
+        Shader.SetGlobalTexture("_OceanDisplacementTex", heightTex);
+        Shader.SetGlobalFloat("Ocean_WaveScale", waveScale);
+        //material.SetTexture("_OceanDisplacementTex", heightTex);
         material.SetTexture("_NormalMap", normalTex);
         //material.SetTexture("_DisplacementMap", displacementTex);
         //material.SetFloat("_Displacement", displacementMagnitude);
