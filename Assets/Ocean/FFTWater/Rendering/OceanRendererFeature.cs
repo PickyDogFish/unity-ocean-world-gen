@@ -21,7 +21,6 @@ public class OceanRendererFeature : ScriptableRendererFeature
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         if (renderingData.cameraData.cameraType == CameraType.Game || renderingData.cameraData.cameraType == CameraType.SceneView){
-            
             m_UnderwaterPass.ConfigureInput(ScriptableRenderPassInput.Color);
             renderer.EnqueuePass(m_UnderwaterPass);
 
@@ -31,6 +30,8 @@ public class OceanRendererFeature : ScriptableRendererFeature
             
         }
     }
+
+
 
     protected override void Dispose(bool disposing)
     {

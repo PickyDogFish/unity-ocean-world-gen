@@ -52,6 +52,11 @@ public class FFTWater : MonoBehaviour
     [SerializeField] private float normalStrength = 1;
     [SerializeField] private bool updateOcean = true;
 
+
+    [Header("Material settings")]
+    [SerializeField] private Color fogColor = Color.black;
+    [Range(0,1)][SerializeField] private float fogIntensity = 0.01f;
+
     void Start()
     {
         threadGroupsX = FFTSize / 8;
@@ -201,6 +206,8 @@ public class FFTWater : MonoBehaviour
     {
         Shader.SetGlobalTexture("_OceanDisplacementTex", heightTex);
         Shader.SetGlobalFloat("Ocean_WaveScale", waveScale);
+        Shader.SetGlobalVector("Ocean_FogColor", fogColor);
+        Shader.SetGlobalFloat("Ocean_FogIntensity", fogIntensity);
         //material.SetTexture("_OceanDisplacementTex", heightTex);
         material.SetTexture("_NormalMap", normalTex);
         //material.SetTexture("_DisplacementMap", displacementTex);

@@ -92,6 +92,9 @@ public class OceanPass : ScriptableRenderPass
 
             //Drawing the fullscreen quad
             CommandBuffer cmd = CommandBufferPool.Get("Underwater Effect");
+
+            SetupCameraGlobals(cmd, cameraData.camera);
+
             DrawProceduralFullscreenQuad(cmd, _submergenceTarget,
                 RenderBufferLoadAction.DontCare, _underwaterEffectMaterial, 0);
             cmd.SetGlobalTexture(SubmergenceTexture, _submergenceTargetID);
@@ -102,6 +105,12 @@ public class OceanPass : ScriptableRenderPass
             cmd.Clear();
             CommandBufferPool.Release(cmd);
             context.Submit();
+        }
+
+        private void SetupCameraGlobals(CommandBuffer cmd, Camera cam)
+        {
+            cmd.SetGlobalMatrix(Shader.PropertyToID("Ocean_InverseProjectionMatrix"),
+                GL.GetGPUProjectionMatrix(cam.projectionMatrix, false).inverse);
         }
 
         public override void FrameCleanup(CommandBuffer cmd)

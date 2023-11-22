@@ -29,6 +29,7 @@ Shader "Custom/FFTOcean"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
             #include "OceanGlobals.hlsl"
             #include "DisplacementSampler.hlsl"
+            #include "OceanVolume.hlsl"
 
 
             float _Displacement;
@@ -113,7 +114,8 @@ Shader "Custom/FFTOcean"
                 
                 //If looking at the back face
                 if (facing < 0 ){
-                    finalColor = diffuseColor;
+                    backgroundColor = diffuseColor + specular;
+                    finalColor = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, length(IN.positionWS - _WorldSpaceCameraPos), backgroundColor);
                 }
                 return saturate(float4(finalColor,1));
             
