@@ -75,29 +75,37 @@ Shader "Custom/FFTOcean"
                 return (R0 + (1.0 - R0) * exponential);
             }
 
-            float4 frag(v2f IN, float facing : VFACE) : SV_TARGET{
-                float3 diffuseColor = float3(0.1,0.2,0.8);
-                float4 specularColor = float4(0.85,0.85,0.95, 1);
-                float3 ambientColor = diffuseColor;
-
-
-                float2 screenUV = IN.positionHCS.xy / _ScaledScreenParams.xy;
+            float3 worldPositionFromDepth(float2 screenUV){
                 #if UNITY_REVERSED_Z
                     float depth = SampleSceneDepth(screenUV);
                 #else
                     // Adjust z to match NDC for OpenGL
                     float depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(screenUV));
                 #endif
-                float3 WPFromDepth = ComputeWorldSpacePosition(screenUV, depth, UNITY_MATRIX_I_VP);
-                float depthDif = length(WPFromDepth - IN.positionWS);
+                return ComputeWorldSpacePosition(screenUV, depth, UNITY_MATRIX_I_VP);
+            }
+
+            float4 frag(v2f IN, float facing : VFACE) : SV_TARGET{
+                float3 diffuseColor = float3(0.1,0.2,0.8);
+                float4 specularColor = float4(0.85,0.85,0.95, 1);
+                float3 ambientColor = diffuseColor;
 
                 float3 viewDirection = normalize(_WorldSpaceCameraPos - IN.positionWS);
 
 
+                float2 screenUV = IN.positionHCS.xy / _ScaledScreenParams.xy;
+                float3 refracted = refract(viewDirection, IN.normalWS, 1.0/1.33);
+                screenUV += refracted.xz * Ocean_RefractionIntensity;
+
+                float3 WPFromDepth = worldPositionFromDepth(screenUV);
+
+                float depthDif = length(WPFromDepth - IN.positionWS);
+
+
+
                 IN.normalWS = IN.normalWS * 0.5;
 
-                float3 refracted = refract(viewDirection, IN.normalWS, 1.0/1.33);
-                screenUV += refracted.xz * depthDif * Ocean_RefractionIntensity;
+                
             
                 float3 backgroundColor = SampleSceneColor(screenUV);
                 float3 colorThroughWater = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, depthDif, backgroundColor);
