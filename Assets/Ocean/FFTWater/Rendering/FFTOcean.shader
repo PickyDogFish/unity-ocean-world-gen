@@ -71,16 +71,14 @@ Shader "Custom/FFTOcean"
 
             float SchlickFresnel(float3 normal, float3 viewDir){
                 float R0 = 0.308641975308642;
-                float exponential = pow(1- dot(normal, viewDir), 10);
-                return exponential + R0 * (1.0 - exponential);
+                float exponential = pow(1- saturate(dot(normal, viewDir)), 5);
+                return (R0 + (1.0 - R0) * exponential);
             }
 
             float4 frag(v2f IN, float facing : VFACE) : SV_TARGET{
                 float3 diffuseColor = float3(0.1,0.2,0.8);
                 float4 specularColor = float4(0.85,0.85,0.95, 1);
                 float3 ambientColor = diffuseColor;
-
-                float4 fogColor = float4(diffuseColor, 0.1);
 
 
                 float2 screenUV = IN.positionHCS.xy / _ScaledScreenParams.xy;
@@ -93,30 +91,30 @@ Shader "Custom/FFTOcean"
                 float3 WPFromDepth = ComputeWorldSpacePosition(screenUV, depth, UNITY_MATRIX_I_VP);
                 float depthDif = length(WPFromDepth - IN.positionWS);
 
-                float3 viewDir = normalize(_WorldSpaceCameraPos - IN.positionWS);
-                float3 lightDir = _MainLightPosition;
-                float3 halfwayDir = normalize(viewDir + lightDir);
+                float3 viewDirection = normalize(_WorldSpaceCameraPos - IN.positionWS);
 
-                float3 refracted = refract(viewDir, IN.normalWS, 1.0/1.33);
+
+                IN.normalWS = IN.normalWS * 0.5;
+
+                float3 refracted = refract(viewDirection, IN.normalWS, 1.0/1.33);
                 screenUV += refracted.xz * depthDif * Ocean_RefractionIntensity;
-                
+            
                 float3 backgroundColor = SampleSceneColor(screenUV);
-                float3 colorThroughWater = underwaterFogColor(fogColor, Ocean_FogIntensity, depthDif, backgroundColor);
+                float3 colorThroughWater = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, depthDif, backgroundColor);
 
-                //saturate because dot() is negative half the time
-                float3 lambert = colorThroughWater * saturate(dot(lightDir, IN.normalWS));
-                float fernel = SchlickFresnel(IN.normalWS, viewDir);
-                float specular = SchlickFresnel(IN.normalWS, viewDir) * 0.05 + pow(dot(halfwayDir, IN.normalWS), 5) * 0.2; //LightingSpecular(_MainLightColor.rgb, _MainLightPosition, IN.normalWS, viewDir, specularColor, 25);
-                //float3 finalColor = ambientColor + lambert + specular;
-                float3 finalColor = lerp(colorThroughWater, specularColor, fernel);
-                //float3 finalColor = specular;
+                float3 reflectionDir = reflect(viewDirection, IN.normalWS);
+                float3 reflectionColor = SampleOceanCubeMap(reflectionDir);
 
-                //finalColor = SampleHeight(IN.positionWS.xz, Ocean_WaveScale).xxx;
+                float fernel = SchlickFresnel(IN.normalWS, viewDirection);
                 
+                float3 finalColor = lerp(colorThroughWater, reflectionColor, fernel);
+
+
                 //If looking at the back face
                 if (facing < 0 ){
                     finalColor = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, length(IN.positionWS - _WorldSpaceCameraPos), finalColor);
                 }
+                //finalColor = reflectionColor;
                 return saturate(float4(finalColor,1));
             
             }

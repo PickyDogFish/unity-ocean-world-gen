@@ -210,6 +210,7 @@ public class FFTWater : MonoBehaviour
         Shader.SetGlobalVector("Ocean_FogColor", fogColor);
         Shader.SetGlobalFloat("Ocean_FogIntensity", fogIntensity);
         Shader.SetGlobalFloat("Ocean_RefractionIntensity", refractionIntensity);
+        Shader.SetGlobalTexture("Ocean_CubeMap", ReflectionProbe.defaultTexture);
         //material.SetTexture("_OceanDisplacementTex", heightTex);
         material.SetTexture("_NormalMap", normalTex);
         //material.SetTexture("_DisplacementMap", displacementTex);
