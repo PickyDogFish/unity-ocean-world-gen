@@ -11,5 +11,6 @@ float4x4 Ocean_InverseProjectionMatrix;
 
 float3 Ocean_FogColor;
 float Ocean_FogIntensity;
+float Ocean_RefractionIntensity;
 
 float Ocean_WaveScale;

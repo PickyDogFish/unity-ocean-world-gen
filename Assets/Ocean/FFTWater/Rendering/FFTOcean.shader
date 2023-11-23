@@ -67,14 +67,11 @@ Shader "Custom/FFTOcean"
                 return output; 
             }
 
-            float3 ColorThroughWater(float4 fogColor, float3 backgroundColor, float depth){
-                float fogFactor = exp2(-fogColor.a * depth);
-                return lerp(fogColor.rgb, backgroundColor, fogFactor);
-            }
+
 
             float SchlickFresnel(float3 normal, float3 viewDir){
                 float R0 = 0.308641975308642;
-                float exponential = pow(1- dot(normal, viewDir), 5);
+                float exponential = pow(1- dot(normal, viewDir), 10);
                 return exponential + R0 * (1.0 - exponential);
             }
 
@@ -96,26 +93,29 @@ Shader "Custom/FFTOcean"
                 float3 WPFromDepth = ComputeWorldSpacePosition(screenUV, depth, UNITY_MATRIX_I_VP);
                 float depthDif = length(WPFromDepth - IN.positionWS);
 
-                float3 backgroundColor = SampleSceneColor(screenUV);
-                float3 colorThroughWater = ColorThroughWater(fogColor, backgroundColor, depthDif);
-
                 float3 viewDir = normalize(_WorldSpaceCameraPos - IN.positionWS);
                 float3 lightDir = _MainLightPosition;
                 float3 halfwayDir = normalize(viewDir + lightDir);
+
+                float3 refracted = refract(viewDir, IN.normalWS, 1.0/1.33);
+                screenUV += refracted.xz * depthDif * Ocean_RefractionIntensity;
                 
+                float3 backgroundColor = SampleSceneColor(screenUV);
+                float3 colorThroughWater = underwaterFogColor(fogColor, Ocean_FogIntensity, depthDif, backgroundColor);
+
                 //saturate because dot() is negative half the time
                 float3 lambert = colorThroughWater * saturate(dot(lightDir, IN.normalWS));
+                float fernel = SchlickFresnel(IN.normalWS, viewDir);
                 float specular = SchlickFresnel(IN.normalWS, viewDir) * 0.05 + pow(dot(halfwayDir, IN.normalWS), 5) * 0.2; //LightingSpecular(_MainLightColor.rgb, _MainLightPosition, IN.normalWS, viewDir, specularColor, 25);
                 //float3 finalColor = ambientColor + lambert + specular;
-                float3 finalColor = colorThroughWater + specular;
+                float3 finalColor = lerp(colorThroughWater, specularColor, fernel);
                 //float3 finalColor = specular;
 
                 //finalColor = SampleHeight(IN.positionWS.xz, Ocean_WaveScale).xxx;
                 
                 //If looking at the back face
                 if (facing < 0 ){
-                    backgroundColor = diffuseColor + specular;
-                    finalColor = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, length(IN.positionWS - _WorldSpaceCameraPos), backgroundColor);
+                    finalColor = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, length(IN.positionWS - _WorldSpaceCameraPos), finalColor);
                 }
                 return saturate(float4(finalColor,1));
             
