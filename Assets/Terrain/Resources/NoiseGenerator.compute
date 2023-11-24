@@ -7,6 +7,7 @@ RWStructuredBuffer<float> _noiseValues;
 
 uint _size;
 float _scale;
+int2 _tileCoords;
 
 float2 Unity_GradientNoise_Dir_float(float2 p)
 {
@@ -36,15 +37,17 @@ float Unity_GradientNoise_float(float2 UV, float Scale)
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    _noiseValues[id.y * _size + id.x] = Unity_GradientNoise_float(id.xy/(float)_size, _scale);
+    int2 coords = _tileCoords * (_size-1) + id.xy;
+
+    _noiseValues[id.y * _size + id.x] = Unity_GradientNoise_float(coords.xy/(float)_size, _scale);
     if (id.x == _size-2){
-        _noiseValues[id.y * _size + id.x + 1] = _noiseValues[id.y * _size + id.x];
+        _noiseValues[id.y * _size + id.x + 1] = Unity_GradientNoise_float((coords.xy + int2(1,0))/(float)_size, _scale);
     }
     if (id.y == _size-2){
-        _noiseValues[(id.y + 1) * _size + id.x] = _noiseValues[id.y * _size + id.x];
+        _noiseValues[(id.y + 1) * _size + id.x] = Unity_GradientNoise_float((coords.xy + int2(0,1))/(float)_size, _scale);
     }
     if (id.y == _size-2 && id.x == _size-2){
-        _noiseValues[(id.y + 1) * _size + id.x + 1] = _noiseValues[id.y * _size + id.x];
+        _noiseValues[(id.y + 1) * _size + id.x + 1] = Unity_GradientNoise_float((coords.xy + int2(1,1))/(float)_size, _scale);
     }
 }
 
