@@ -39,14 +39,13 @@ public class TerrainGen : MonoBehaviour
 
         terrainData.baseMapResolution = baseTextureResolution;
         terrainData.heightmapResolution = heightmapResolution;
-        Texture2D noise = GaussianNoise.GenerateTex(512);
         terrainData.SetHeights(0, 0, NoiseGen.GetNoiseArray(noiseCS, heightmapResolution, 1));
 
         terrainData.alphamapResolution = controlTextureResolution;
         terrainData.SetDetailResolution(detailResolution, detailResolutionPerPatch);
 
         terrainData.name = name;
-        GameObject terrain = (GameObject)Terrain.CreateTerrainGameObject(terrainData);
+        GameObject terrain = Terrain.CreateTerrainGameObject(terrainData);
 
         terrain.name = name;
         terrain.transform.parent = gameObject.transform;

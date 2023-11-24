@@ -37,6 +37,15 @@ float Unity_GradientNoise_float(float2 UV, float Scale)
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
     _noiseValues[id.y * _size + id.x] = Unity_GradientNoise_float(id.xy/(float)_size, _scale);
+    if (id.x == _size-2){
+        _noiseValues[id.y * _size + id.x + 1] = _noiseValues[id.y * _size + id.x];
+    }
+    if (id.y == _size-2){
+        _noiseValues[(id.y + 1) * _size + id.x] = _noiseValues[id.y * _size + id.x];
+    }
+    if (id.y == _size-2 && id.x == _size-2){
+        _noiseValues[(id.y + 1) * _size + id.x + 1] = _noiseValues[id.y * _size + id.x];
+    }
 }
 
 

@@ -12,6 +12,7 @@ public static class NoiseGen
         noiseCS.Dispatch(0, size/8, size/8, 1);
         noiseBuffer.GetData(finalValues);
         noiseBuffer.Release();
+        Debug.Log(finalValues[size-1, size-1]);
         return finalValues;
     }
 
