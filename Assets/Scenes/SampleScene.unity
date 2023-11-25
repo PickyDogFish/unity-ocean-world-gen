@@ -746,6 +746,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0f61e2b2707da543917673dc37703fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  width: 512
+  length: 512
+  height: 256
+  tileRange: 1
 --- !u!4 &1254785112
 Transform:
   m_ObjectHideFlags: 0
@@ -754,7 +758,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1254785110}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 608, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
