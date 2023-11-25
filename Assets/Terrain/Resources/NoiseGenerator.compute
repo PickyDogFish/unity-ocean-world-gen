@@ -39,7 +39,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 {
     int2 coords = _tileCoords * (_size-1) + id.xy;
 
-    _noiseValues[id.y * _size + id.x] = Unity_GradientNoise_float(coords.xy/(float)_size, _scale);
+    _noiseValues[id.y * _size + id.x] = saturate(Unity_GradientNoise_float(coords.xy/(float)_size, _scale));
     if (id.x == _size-2){
         _noiseValues[id.y * _size + id.x + 1] = Unity_GradientNoise_float((coords.xy + int2(1,0))/(float)_size, _scale);
     }
