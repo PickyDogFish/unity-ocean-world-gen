@@ -9,6 +9,8 @@ using UnityEngine.TerrainUtils;
 public class TerrainGen : MonoBehaviour
 {
     private ComputeShader noiseCS;
+    [SerializeField] private Transform cameraTransform;
+    [SerializeField] private int tileRange = 1;
 
     [Header("Chunk settings")]
     [SerializeField] private float widthScale = 512;
@@ -31,7 +33,6 @@ public class TerrainGen : MonoBehaviour
     private int baseTextureResolution = 1024;
 
 
-    [SerializeField] private int tileRange = 1;
 
     private Dictionary<Vector2Int, Terrain> tileDictionary = new Dictionary<Vector2Int, Terrain>();
 
