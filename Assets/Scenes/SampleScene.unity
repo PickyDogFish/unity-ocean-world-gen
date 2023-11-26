@@ -564,6 +564,7 @@ MonoBehaviour:
   fogColor: {r: 0.18970275, g: 0.31277725, b: 0.8207547, a: 1}
   fogIntensity: 0.02
   refractionIntensity: 0.02
+  playerTransform: {fileID: 1271878029}
 --- !u!4 &1023640315
 Transform:
   m_ObjectHideFlags: 0

@@ -14,7 +14,7 @@ Shader "Custom/FFTOcean"
             //can be used to tell unity not to render the pass on a frame/draw it during a given call to ScriptableRenderContext.DrawRendereres
             Tags { "LightMode" = "OceanMain"}
             Name "Ocean pass"
-            Cull Off //turn off backface culling
+            Cull Off
             ZWrite On
             // The HLSL code block. Unity SRP uses the HLSL language.
             HLSLPROGRAM
@@ -30,6 +30,7 @@ Shader "Custom/FFTOcean"
             #include "OceanGlobals.hlsl"
             #include "DisplacementSampler.hlsl"
             #include "OceanVolume.hlsl"
+            #include "ClipMap.hlsl"
 
 
             float _Displacement;
@@ -52,17 +53,17 @@ Shader "Custom/FFTOcean"
 
             v2f vert(Attributes input){
                 v2f output;
-                float3 worldPos = TransformObjectToWorld(input.position);
-                float3 normal = _NormalMap.SampleLevel(sampler_NormalMap, worldPos.xz / Ocean_WaveScale, 0.0f);
+
+                output.positionWS = ClipMapVertex(input.position);//TransformObjectToWorld(input.position);
+                float3 normal = _NormalMap.SampleLevel(sampler_NormalMap, output.positionWS.xz / Ocean_WaveScale, 0.0f);
                 output.normalWS = normal;
                 
-                float3 displacement = _OceanDisplacementTex.SampleLevel(sampler_OceanDisplacementTex, worldPos.xz/Ocean_WaveScale, 0.0f);
+                float3 displacement = _OceanDisplacementTex.SampleLevel(sampler_OceanDisplacementTex, output.positionWS.xz/Ocean_WaveScale, 0.0f);
                 
-                input.position += displacement.yxz;
+                output.positionWS += displacement.yxz;
                 
-
-                output.positionHCS = TransformObjectToHClip(input.position.xyz);;
-                output.positionWS = TransformObjectToWorld(input.position);
+                float3 positionOS = TransformWorldToObject(output.positionWS);
+                output.positionHCS = TransformObjectToHClip(positionOS);
 
                 return output; 
             }

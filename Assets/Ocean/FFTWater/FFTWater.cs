@@ -58,6 +58,8 @@ public class FFTWater : MonoBehaviour
     [Range(0,1)][SerializeField] private float fogIntensity = 0.01f;
     [Range(0,0.1f)][SerializeField] private float refractionIntensity = 0.001f;
 
+    [SerializeField] Transform playerTransform;
+
     void Start()
     {
         threadGroupsX = FFTSize / 8;
@@ -213,6 +215,7 @@ public class FFTWater : MonoBehaviour
         Shader.SetGlobalTexture("Ocean_CubeMap", ReflectionProbe.defaultTexture);
         //material.SetTexture("_OceanDisplacementTex", heightTex);
         material.SetTexture("_NormalMap", normalTex);
+        material.SetVector("ClipMap_ViewerPosition", playerTransform.position);
         //material.SetTexture("_DisplacementMap", displacementTex);
         //material.SetFloat("_Displacement", displacementMagnitude);
     }
