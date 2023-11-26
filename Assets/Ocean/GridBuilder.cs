@@ -7,7 +7,6 @@ public class GridBuilder : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log("setting mesh");
         Debug.Assert(GetComponent<MeshFilter>() != null);
         GetComponentInChildren<MeshFilter>().mesh = BuildClipMap(clipMapVertexDensity, clipMapLevels);
 

@@ -123,100 +123,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1001 &106648815
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 4455147124871364403, guid: 460768ca0cb5dd2449b85cd4ab67e883,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4684679174809258100, guid: 460768ca0cb5dd2449b85cd4ab67e883,
-        type: 3}
-      propertyPath: m_RootOrder
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 4684679174809258100, guid: 460768ca0cb5dd2449b85cd4ab67e883,
-        type: 3}
-      propertyPath: m_LocalScale.x
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 4684679174809258100, guid: 460768ca0cb5dd2449b85cd4ab67e883,
-        type: 3}
-      propertyPath: m_LocalScale.y
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 4684679174809258100, guid: 460768ca0cb5dd2449b85cd4ab67e883,
-        type: 3}
-      propertyPath: m_LocalScale.z
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 4684679174809258100, guid: 460768ca0cb5dd2449b85cd4ab67e883,
-        type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -572
-      objectReference: {fileID: 0}
-    - target: {fileID: 4684679174809258100, guid: 460768ca0cb5dd2449b85cd4ab67e883,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -84
-      objectReference: {fileID: 0}
-    - target: {fileID: 4684679174809258100, guid: 460768ca0cb5dd2449b85cd4ab67e883,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -349
-      objectReference: {fileID: 0}
-    - target: {fileID: 4684679174809258100, guid: 460768ca0cb5dd2449b85cd4ab67e883,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4684679174809258100, guid: 460768ca0cb5dd2449b85cd4ab67e883,
-        type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4684679174809258100, guid: 460768ca0cb5dd2449b85cd4ab67e883,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4684679174809258100, guid: 460768ca0cb5dd2449b85cd4ab67e883,
-        type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4684679174809258100, guid: 460768ca0cb5dd2449b85cd4ab67e883,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4684679174809258100, guid: 460768ca0cb5dd2449b85cd4ab67e883,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4684679174809258100, guid: 460768ca0cb5dd2449b85cd4ab67e883,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4684679174809258100, guid: 460768ca0cb5dd2449b85cd4ab67e883,
-        type: 3}
-      propertyPath: m_ConstrainProportionsScale
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8584647052892975280, guid: 460768ca0cb5dd2449b85cd4ab67e883,
-        type: 3}
-      propertyPath: m_Name
-      value: TerrainSample
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 460768ca0cb5dd2449b85cd4ab67e883, type: 3}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -766,12 +672,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0f61e2b2707da543917673dc37703fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cameraTransform: {fileID: 330585546}
-  tileRange: 1
-  widthScale: 512
-  lengthScale: 512
-  heightScale: 256
-  noiseScale: 2
+  cameraTransform: {fileID: 1271878029}
+  tileRange: 3
+  widthScale: 64
+  heightScale: 64
+  noiseScale: 1
   rockLayer: {fileID: 8574412962073106934, guid: 971b10a25f1d566428beaf88ec5bc4ce,
     type: 2}
   grassLayer: {fileID: 8574412962073106934, guid: ab1aed2c98fa1f742a8b71de8b325a45,
@@ -786,12 +691,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1254785110}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -128, z: 0}
+  m_LocalPosition: {x: 0, y: -64, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1271878028
 GameObject:
@@ -840,7 +745,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   actions: {fileID: -944628639613478452, guid: 9d0155f987f010046b17a95e6121b354, type: 3}
-  walkSpeed: 10
+  walkSpeed: 100
 --- !u!114 &1271878031
 MonoBehaviour:
   m_ObjectHideFlags: 0
