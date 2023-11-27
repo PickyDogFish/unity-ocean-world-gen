@@ -30,7 +30,7 @@ public class FFTWater : MonoBehaviour
 
     [SerializeField] private Material material;
 
-    public RenderTexture heightTex,
+    private RenderTexture heightTex,
                       normalTex,
                       twiddleTex,
                       pingPongTex,
@@ -60,8 +60,16 @@ public class FFTWater : MonoBehaviour
 
     [SerializeField] Transform playerTransform;
 
+    [Header("Clipmap settings")] 
+    [SerializeField] private int clipMapLevels = 4;
+    [SerializeField] private int clipMapVertexDensity = 16;
+
     void Start()
     {
+        //setting mesh bounds so it doesnt get culled when camera moves out of original mesh bounds
+        GetComponentInChildren<MeshFilter>().mesh = GridBuilder.BuildClipMap(clipMapVertexDensity, clipMapLevels);
+
+
         threadGroupsX = FFTSize / 8;
         threadGroupsY = FFTSize / 8;
         logN = (int)Mathf.Log(FFTSize, 2);
@@ -86,6 +94,8 @@ public class FFTWater : MonoBehaviour
 
     void Update()
     {
+        GetComponent<MeshFilter>().mesh.bounds = new Bounds(playerTransform.position,  GetComponent<MeshFilter>().mesh.bounds.size);
+
         if (updateSpectrum)
         {
             CalculateInitialSpectrum();

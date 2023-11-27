@@ -2,17 +2,6 @@ using UnityEngine;
 
 public class GridBuilder : MonoBehaviour
 {
-    [SerializeField] private int clipMapLevels = 4;
-    [SerializeField] private int clipMapVertexDensity = 16;
-
-    private void Start()
-    {
-        Debug.Assert(GetComponent<MeshFilter>() != null);
-        GetComponentInChildren<MeshFilter>().mesh = BuildClipMap(clipMapVertexDensity, clipMapLevels);
-
-    }
-
-
     //amount of overlap between the rings
     private const int _overlap = 2;
 
