@@ -83,6 +83,10 @@ public class TerrainGen : MonoBehaviour
         Debug.Log(terrainCoords + "    left: " + generatedTileDictionary[terrainCoords].leftNeighbor + "    top: " + generatedTileDictionary[terrainCoords].topNeighbor + "    right: " + generatedTileDictionary[terrainCoords].rightNeighbor + "    bottom: " + generatedTileDictionary[terrainCoords].bottomNeighbor);
     }
 
+    /// <summary>
+    /// Sets terrain tile to active if already generated, otherwise generates new terrain tile. Handles dictionaries
+    /// </summary>
+    /// <param name="terrainCoords"></param>
     public void ShowTerrain(Vector2Int terrainCoords) {
         if (generatedTileDictionary.ContainsKey(terrainCoords)){
             Terrain tile = generatedTileDictionary[terrainCoords];
@@ -93,6 +97,10 @@ public class TerrainGen : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Sets terrain tile active to false and handles dictionaries
+    /// </summary>
+    /// <param name="terrainCoords"></param>
     public void HideTerrain(Vector2Int terrainCoords)
     {
         if (shownTileDictionary.ContainsKey(terrainCoords))
@@ -103,6 +111,10 @@ public class TerrainGen : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// generates a terrain tile, sets the terrain neighbors and adds it to generated and shown dictionaries 
+    /// </summary>
+    /// <param name="terrainCoords"></param>
     public void AddTerrain(Vector2Int terrainCoords)
     {
         Terrain terrain = CreateTerrainTile(terrainCoords);
@@ -229,6 +241,11 @@ public class TerrainGen : MonoBehaviour
         return chunksInRange;
     }
 
+    /// <summary>
+    /// Transforms the 0-1 heightmap value to world space height
+    /// </summary>
+    /// <param name="height">Heightmap value</param>
+    /// <returns>World Space height</returns>
     private float WorldSpaceHeight(float height)
     {
         return height * heightScale + transform.position.y;
