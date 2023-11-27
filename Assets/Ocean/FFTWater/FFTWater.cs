@@ -53,7 +53,6 @@ public class FFTWater : MonoBehaviour
     public int FFTSize = 128;
     [SerializeField] private Vector2 displacementStrength = Vector2.one;
     [SerializeField] private float normalStrength = 1;
-    [SerializeField] private bool updateOcean = true;
 
 
     [Header("Material settings")]
@@ -106,12 +105,6 @@ public class FFTWater : MonoBehaviour
             CalculateConjugatedSpectrum();
         }
 
-        if (updateOcean)
-        {
-            FFTCS.SetVector("_Lambda", displacementStrength);
-            FFTCS.SetFloat("_NormalStrength", normalStrength);
-        }
-
         SetMaterialVariables();
         
         CalculateTimeSpectrum(cmd);
@@ -136,6 +129,8 @@ public class FFTWater : MonoBehaviour
         cmd.SetComputeTextureParam(FFTCS, CSKernels.assembleMapsKernel, "_HTildeDisplacementZTex", htildeDisplacementZTex);
         cmd.SetComputeTextureParam(FFTCS, CSKernels.assembleMapsKernel, "_HeightTex", heightTex);
         cmd.SetComputeTextureParam(FFTCS, CSKernels.assembleMapsKernel, "_NormalTex", normalTex);
+        cmd.SetComputeFloatParam(FFTCS, "_NormalStrength", normalStrength);
+        cmd.SetComputeVectorParam(FFTCS, "_Lambda", displacementStrength);
         cmd.DispatchCompute(FFTCS, CSKernels.assembleMapsKernel, threadGroupsX, threadGroupsY, 1);
     }
 
