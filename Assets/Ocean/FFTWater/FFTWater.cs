@@ -1,5 +1,6 @@
 using OceanSimulation;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class FFTWater : MonoBehaviour
 {
@@ -19,6 +20,8 @@ public class FFTWater : MonoBehaviour
     [SerializeField] private float lowCutoff = 0.0001f;
     [SerializeField] private float highCutoff = 10000.0f;
     [SerializeField] private bool updateSpectrum = false;
+    
+    [Header("Time spectrum settings")]
     [SerializeField] private float repeatTime = 200;
     [Range(0.1f, 2.0f)][SerializeField] private float speed = 1;
     private Texture2D gaussianNoise;
@@ -95,6 +98,7 @@ public class FFTWater : MonoBehaviour
     void Update()
     {
         GetComponent<MeshFilter>().mesh.bounds = new Bounds(playerTransform.position,  GetComponent<MeshFilter>().mesh.bounds.size);
+        CommandBuffer cmd = CommandBufferPool.Get("OceanSimulation");
 
         if (updateSpectrum)
         {
@@ -110,27 +114,29 @@ public class FFTWater : MonoBehaviour
 
         SetMaterialVariables();
         
-        CalculateTimeSpectrum();
+        CalculateTimeSpectrum(cmd);
 
-        InverseFFT(htildeTex);
-        InverseFFT(htildeSlopeXTex);
-        InverseFFT(htildeSlopeZTex);
-        InverseFFT(htildeDisplacementXTex);
-        InverseFFT(htildeDisplacementZTex);
-
-        AssembleMaps();
+        InverseFFT(cmd, htildeTex);
+        InverseFFT(cmd, htildeSlopeXTex);
+        InverseFFT(cmd, htildeSlopeZTex);
+        InverseFFT(cmd, htildeDisplacementXTex);
+        InverseFFT(cmd, htildeDisplacementZTex);
+        AssembleMaps(cmd);
+        Graphics.ExecuteCommandBuffer(cmd);
+        CommandBufferPool.Release(cmd);
     }
 
-    void AssembleMaps()
+
+    void AssembleMaps(CommandBuffer cmd)
     {
-        FFTCS.SetTexture(CSKernels.assembleMapsKernel, "_HTildeTex", htildeTex);
-        FFTCS.SetTexture(CSKernels.assembleMapsKernel, "_HTildeSlopeXTex", htildeSlopeXTex);
-        FFTCS.SetTexture(CSKernels.assembleMapsKernel, "_HTildeSlopeZTex", htildeSlopeZTex);
-        FFTCS.SetTexture(CSKernels.assembleMapsKernel, "_HTildeDisplacementXTex", htildeDisplacementXTex);
-        FFTCS.SetTexture(CSKernels.assembleMapsKernel, "_HTildeDisplacementZTex", htildeDisplacementZTex);
-        FFTCS.SetTexture(CSKernels.assembleMapsKernel, "_HeightTex", heightTex);
-        FFTCS.SetTexture(CSKernels.assembleMapsKernel, "_NormalTex", normalTex);
-        FFTCS.Dispatch(CSKernels.assembleMapsKernel, threadGroupsX, threadGroupsY, 1);
+        cmd.SetComputeTextureParam(FFTCS, CSKernels.assembleMapsKernel, "_HTildeTex", htildeTex);
+        cmd.SetComputeTextureParam(FFTCS, CSKernels.assembleMapsKernel, "_HTildeSlopeXTex", htildeSlopeXTex);
+        cmd.SetComputeTextureParam(FFTCS, CSKernels.assembleMapsKernel, "_HTildeSlopeZTex", htildeSlopeZTex);
+        cmd.SetComputeTextureParam(FFTCS, CSKernels.assembleMapsKernel, "_HTildeDisplacementXTex", htildeDisplacementXTex);
+        cmd.SetComputeTextureParam(FFTCS, CSKernels.assembleMapsKernel, "_HTildeDisplacementZTex", htildeDisplacementZTex);
+        cmd.SetComputeTextureParam(FFTCS, CSKernels.assembleMapsKernel, "_HeightTex", heightTex);
+        cmd.SetComputeTextureParam(FFTCS, CSKernels.assembleMapsKernel, "_NormalTex", normalTex);
+        cmd.DispatchCompute(FFTCS, CSKernels.assembleMapsKernel, threadGroupsX, threadGroupsY, 1);
     }
 
     void InitializeRenderTextures()
@@ -171,48 +177,47 @@ public class FFTWater : MonoBehaviour
         spectrumCS.Dispatch(CSKernels.conjugateKernel, threadGroupsX, threadGroupsY, 1);
     }
 
-    void CalculateTimeSpectrum()
+    void CalculateTimeSpectrum(CommandBuffer cmd)
     {
-        spectrumCS.SetTexture(CSKernels.FFTTimeKernel, "_InitialSpectrumTex", initialSpectrumTex);
-        spectrumCS.SetTexture(CSKernels.FFTTimeKernel, "_HTildeTex", htildeTex);
-        spectrumCS.SetTexture(CSKernels.FFTTimeKernel, "_HTildeSlopeXTex", htildeSlopeXTex);
-        spectrumCS.SetTexture(CSKernels.FFTTimeKernel, "_HTildeSlopeZTex", htildeSlopeZTex);
-        spectrumCS.SetTexture(CSKernels.FFTTimeKernel, "_HTildeDisplacementXTex", htildeDisplacementXTex);
-        spectrumCS.SetTexture(CSKernels.FFTTimeKernel, "_HTildeDisplacementZTex", htildeDisplacementZTex);
-        spectrumCS.SetFloat("_Time", Time.time * speed);
-        spectrumCS.SetFloat("_RepeatTime", repeatTime);
-        spectrumCS.Dispatch(CSKernels.FFTTimeKernel, threadGroupsX, threadGroupsY, 1);
+        cmd.SetComputeTextureParam(spectrumCS, CSKernels.FFTTimeKernel, "_InitialSpectrumTex", initialSpectrumTex);
+        cmd.SetComputeTextureParam(spectrumCS, CSKernels.FFTTimeKernel, "_HTildeTex", htildeTex);
+        cmd.SetComputeTextureParam(spectrumCS, CSKernels.FFTTimeKernel, "_HTildeSlopeXTex", htildeSlopeXTex);
+        cmd.SetComputeTextureParam(spectrumCS, CSKernels.FFTTimeKernel, "_HTildeSlopeZTex", htildeSlopeZTex);
+        cmd.SetComputeTextureParam(spectrumCS, CSKernels.FFTTimeKernel, "_HTildeDisplacementXTex", htildeDisplacementXTex);
+        cmd.SetComputeTextureParam(spectrumCS, CSKernels.FFTTimeKernel, "_HTildeDisplacementZTex", htildeDisplacementZTex);
+        cmd.SetComputeFloatParam(spectrumCS, "_Time", Time.time * speed);
+        cmd.SetComputeFloatParam(spectrumCS, "_RepeatTime", repeatTime);
+        cmd.DispatchCompute(spectrumCS, CSKernels.FFTTimeKernel, threadGroupsX, threadGroupsY, 1);
     }
 
-    void InverseFFT(RenderTexture spectrumTex)
+    void InverseFFT(CommandBuffer cmd, RenderTexture spectrumTex)
     {
+        cmd.SetComputeTextureParam(FFTCS, CSKernels.verticalIFFTKernel, "_TwiddleTexture", twiddleTex);
+        cmd.SetComputeTextureParam(FFTCS, CSKernels.verticalIFFTKernel, "_Buffer0", spectrumTex);
+        cmd.SetComputeTextureParam(FFTCS, CSKernels.verticalIFFTKernel, "_Buffer1", pingPongTex);
         bool pingPong = false;
-        FFTCS.SetTexture(CSKernels.verticalIFFTKernel, "_TwiddleTexture", twiddleTex);
-        FFTCS.SetTexture(CSKernels.verticalIFFTKernel, "_Buffer0", spectrumTex);
-        FFTCS.SetTexture(CSKernels.verticalIFFTKernel, "_Buffer1", pingPongTex);
         for (int i = 0; i < logN; ++i)
         {
             pingPong = !pingPong;
-            FFTCS.SetInt("_Step", i);
-            FFTCS.SetBool("_PingPong", pingPong);
-            FFTCS.Dispatch(CSKernels.verticalIFFTKernel, threadGroupsX, threadGroupsY, 1);
+            cmd.SetComputeIntParam(FFTCS, "_Step", i);
+            cmd.SetComputeIntParam(FFTCS,"_PingPong", pingPong?1:0);
+            cmd.DispatchCompute(FFTCS, CSKernels.verticalIFFTKernel, threadGroupsX, threadGroupsY, 1);
         }
-
-        FFTCS.SetTexture(CSKernels.horizontalIFFTKernel, "_TwiddleTexture", twiddleTex);
-        FFTCS.SetTexture(CSKernels.horizontalIFFTKernel, "_Buffer0", spectrumTex);
-        FFTCS.SetTexture(CSKernels.horizontalIFFTKernel, "_Buffer1", pingPongTex);
+        cmd.SetComputeTextureParam(FFTCS, CSKernels.horizontalIFFTKernel, "_TwiddleTexture", twiddleTex);
+        cmd.SetComputeTextureParam(FFTCS, CSKernels.horizontalIFFTKernel, "_Buffer0", spectrumTex);
+        cmd.SetComputeTextureParam(FFTCS, CSKernels.horizontalIFFTKernel, "_Buffer1", pingPongTex);
         for (int i = 0; i < logN; ++i)
         {
             pingPong = !pingPong;
-            FFTCS.SetInt("_Step", i);
-            FFTCS.SetBool("_PingPong", pingPong);
-            FFTCS.Dispatch(CSKernels.horizontalIFFTKernel, threadGroupsX, threadGroupsY, 1);
+            cmd.SetComputeIntParam(FFTCS, "_Step", i);
+            cmd.SetComputeIntParam(FFTCS,"_PingPong", pingPong?1:0);
+            cmd.DispatchCompute(FFTCS, CSKernels.horizontalIFFTKernel, threadGroupsX, threadGroupsY, 1);
         }
 
-        if (pingPong) Graphics.Blit(pingPongTex, spectrumTex);
+        if (pingPong) cmd.Blit(pingPongTex, spectrumTex);
 
-        FFTCS.SetTexture(CSKernels.permuteKernel, "_Buffer0", spectrumTex);
-        FFTCS.Dispatch(CSKernels.permuteKernel, threadGroupsX, threadGroupsY, 1);
+        cmd.SetComputeTextureParam(FFTCS, CSKernels.permuteKernel, "_Buffer0", spectrumTex);
+        cmd.DispatchCompute(FFTCS, CSKernels.permuteKernel, threadGroupsX, threadGroupsY, 1);
     }
 
     void SetMaterialVariables()
