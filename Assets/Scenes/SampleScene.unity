@@ -674,10 +674,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cameraTransform: {fileID: 1271878029}
-  tileRange: 3
+  tileRange: 5
+  noiseScale: 0.1
+  percentUnderwater: 0.6
   widthScale: 64
-  heightScale: 64
-  noiseScale: 1
+  heightScale: 128
   rockLayer: {fileID: 8574412962073106934, guid: 971b10a25f1d566428beaf88ec5bc4ce,
     type: 2}
   grassLayer: {fileID: 8574412962073106934, guid: ab1aed2c98fa1f742a8b71de8b325a45,

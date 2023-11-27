@@ -33,22 +33,65 @@ float Unity_GradientNoise_float(float2 UV, float Scale)
     return lerp(lerp(d00, d01, fp.y), lerp(d10, d11, fp.y), fp.x) + 0.5;
 }
 
+float getNoise(int2 coords){
+    return Unity_GradientNoise_float(coords.xy/(float)_size, _scale);
+}
+
+float getFractalNoise(int2 coords, int octaves, float lacunarity, float persistence){
+    float finalValue = 0;
+    float2 floatCoords = float2(coords);
+    float amplitude = 1;
+    float amplitudeSum = 0;
+    for (int i = 1; i <= octaves; i++){
+        finalValue += getNoise(floatCoords) * amplitude;
+        floatCoords *= lacunarity;
+        amplitudeSum += amplitude;
+        amplitude *= persistence;
+    } 
+    finalValue /= amplitudeSum;
+    finalValue *= finalValue;
+    return finalValue;
+}
 
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
+    int octaves = 8;
+    float lacunarity = 5;
+    float persistence = 0.2;
     int2 coords = _tileCoords * (_size-1) + id.xy;
+    _noiseValues[id.y * _size + id.x] = getFractalNoise(coords, octaves, lacunarity, persistence);
 
-    _noiseValues[id.y * _size + id.x] = saturate(Unity_GradientNoise_float(coords.xy/(float)_size, _scale));
+
+    //As size is n^2 + 1, we have to handle the edge cases here
     if (id.x == _size-2){
-        _noiseValues[id.y * _size + id.x + 1] = Unity_GradientNoise_float((coords.xy + int2(1,0))/(float)_size, _scale);
+        _noiseValues[id.y * _size + id.x + 1] = getFractalNoise(coords.xy + int2(1,0), octaves, lacunarity, persistence);
     }
     if (id.y == _size-2){
-        _noiseValues[(id.y + 1) * _size + id.x] = Unity_GradientNoise_float((coords.xy + int2(0,1))/(float)_size, _scale);
+        _noiseValues[(id.y + 1) * _size + id.x] = getFractalNoise(coords.xy + int2(0,1), octaves, lacunarity, persistence);
     }
     if (id.y == _size-2 && id.x == _size-2){
-        _noiseValues[(id.y + 1) * _size + id.x + 1] = Unity_GradientNoise_float((coords.xy + int2(1,1))/(float)_size, _scale);
+        _noiseValues[(id.y + 1) * _size + id.x + 1] = getFractalNoise(coords.xy + int2(1,1), octaves, lacunarity, persistence);
     }
 }
+
+//[numthreads(8,8,1)]
+//void CSMain (uint3 id : SV_DispatchThreadID)
+//{
+//    int2 coords = _tileCoords * (_size-1) + id.xy;
+//    _noiseValues[id.y * _size + id.x] = getNoise(coords, 1);
+//
+//
+//    //As size is n^2 + 1, we have to handle the edge cases here
+//    if (id.x == _size-2){
+//        _noiseValues[id.y * _size + id.x + 1] = getNoise(coords.xy + int2(1,0));
+//    }
+//    if (id.y == _size-2){
+//        _noiseValues[(id.y + 1) * _size + id.x] = getNoise(coords.xy + int2(0,1));
+//    }
+//    if (id.y == _size-2 && id.x == _size-2){
+//        _noiseValues[(id.y + 1) * _size + id.x + 1] = getNoise(coords.xy + int2(1,1));
+//    }
+//}
 
 

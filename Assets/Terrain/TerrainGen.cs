@@ -15,12 +15,15 @@ public class TerrainGen : MonoBehaviour
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private int tileRange = 1;
 
+    [Header("Overall settings")]
+    [SerializeField] private float noiseScale = 1;
+    [Range(0,1)][SerializeField] private float percentUnderwater = 0.6f;
+
     [Header("Chunk settings")]
     [SerializeField] private int widthScale = 64;
     [SerializeField] private int heightScale = 64;
     private Vector3 size { get { return new Vector3(widthScale, heightScale, widthScale); } }
 
-    [SerializeField] private float noiseScale = 1;
 
 
     [Header("Texture settings")]
@@ -45,7 +48,7 @@ public class TerrainGen : MonoBehaviour
     }
     void Start()
     {
-        transform.position = new Vector3(0, -heightScale * 0.75f, 0);
+        transform.position = new Vector3(0, -heightScale * percentUnderwater, 0);
 
         foreach (Vector2Int chunkCoord in ChunkCoordsInRange(cameraTransform.position, tileRange))
         {
