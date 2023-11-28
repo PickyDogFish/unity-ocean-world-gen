@@ -101,7 +101,7 @@ public class OceanUnderwaterEffectPass : ScriptableRenderPass
             RenderBufferLoadAction.DontCare, _underwaterEffectMaterial, 0);
         cmd.SetGlobalTexture(SubmergenceTexture, _submergenceTargetID);
 
-        DrawProceduralFullscreenQuad(cmd, cameraData.renderer.cameraColorTarget,
+        DrawProceduralFullscreenQuad(cmd, cameraData.renderer.cameraColorTargetHandle,
             RenderBufferLoadAction.Load, _underwaterEffectMaterial, 1);
         context.ExecuteCommandBuffer(cmd);
         cmd.Clear();
@@ -151,7 +151,7 @@ public class OceanSunshaftsPass : ScriptableRenderPass
     {
         CommandBuffer cmd = CommandBufferPool.Get("Sun shafts");
         DrawProceduralFullscreenQuad(cmd, raysTexture, RenderBufferLoadAction.DontCare, material, 0);
-        cmd.Blit(raysTexture, renderingData.cameraData.renderer.cameraColorTarget);
+        cmd.Blit(raysTexture, renderingData.cameraData.renderer.cameraColorTargetHandle);
         context.ExecuteCommandBuffer(cmd);
     }
 }
