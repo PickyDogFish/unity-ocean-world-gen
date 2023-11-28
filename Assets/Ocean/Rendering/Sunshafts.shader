@@ -47,7 +47,7 @@ Shader "Ocean/SunShafts"
                 float4 positionVS = mul(Ocean_InverseProjectionMatrix, positionCS);
                 positionVS = positionVS / positionVS.w;
                 float4 positionWS = mul(UNITY_MATRIX_I_V, positionVS);
-                return 1;
+                return float3(1,1,1);//SampleSceneDepth(input.uv);
             }
 
             ENDHLSL

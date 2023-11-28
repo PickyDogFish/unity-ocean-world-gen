@@ -124,26 +124,21 @@ public class OceanUnderwaterEffectPass : ScriptableRenderPass
 public class OceanSunshaftsPass : ScriptableRenderPass
 {
     private Material material;
-    private RenderTargetIdentifier tempTexture;
-    private int tempTextureID;
-    private RenderTargetIdentifier source;
+    private RenderTargetIdentifier raysTexture;
+    private static readonly int raysTexID = Shader.PropertyToID("raysTexture");
     public OceanSunshaftsPass()
     {
         material = new Material(Shader.Find("Ocean/SunShafts"));
-        renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
+        renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
     }
 
-    public void Setup(RenderTargetIdentifier source)
-    {
-        this.source = source;
-    }
 
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
     {
         cameraTextureDescriptor.colorFormat = RenderTextureFormat.R16;
-        cmd.GetTemporaryRT(tempTextureID, 32, 32, 0, FilterMode.Bilinear, RenderTextureFormat.R8, RenderTextureReadWrite.Linear, 1);
-        tempTexture = new RenderTargetIdentifier(tempTextureID);
-        ConfigureTarget(tempTexture);
+        cmd.GetTemporaryRT(raysTexID, 64, 64, 0, FilterMode.Bilinear, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear, 1);
+        raysTexture = new RenderTargetIdentifier(raysTexID);
+        ConfigureTarget(raysTexture);
     }
 
     private void DrawProceduralFullscreenQuad(CommandBuffer cmd, RenderTargetIdentifier target,
@@ -155,9 +150,8 @@ public class OceanSunshaftsPass : ScriptableRenderPass
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
         CommandBuffer cmd = CommandBufferPool.Get("Sun shafts");
-        DrawProceduralFullscreenQuad(cmd, tempTexture, RenderBufferLoadAction.DontCare, material, 0);
-        cmd.Blit(source, tempTexture, material, 0);
-        cmd.Blit(tempTexture, source);
+        DrawProceduralFullscreenQuad(cmd, raysTexture, RenderBufferLoadAction.DontCare, material, 0);
+        cmd.Blit(raysTexture, renderingData.cameraData.renderer.cameraColorTarget);
         context.ExecuteCommandBuffer(cmd);
     }
 }

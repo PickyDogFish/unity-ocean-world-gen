@@ -30,12 +30,13 @@ public class OceanRendererFeature : ScriptableRendererFeature
                 renderer.EnqueuePass(m_UnderwaterPass);
             }
 
-
             m_WaterPass.ConfigureInput(ScriptableRenderPassInput.Color);
             renderer.EnqueuePass(m_WaterPass);
+
+
             if (renderSunShafts){
                 m_SunShaftsPass.ConfigureInput(ScriptableRenderPassInput.Depth);
-                m_SunShaftsPass.Setup(renderer.cameraColorTarget);
+                m_SunShaftsPass.ConfigureInput(ScriptableRenderPassInput.Color);
                 renderer.EnqueuePass(m_SunShaftsPass);
             }
         }
