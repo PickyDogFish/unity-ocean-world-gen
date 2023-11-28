@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   waterShader: {fileID: 4800000, guid: 29fe84121e4f79040bd739e039495586, type: 3}
-  renderUnderwater: 1
+  renderUnderwater: 0
   renderSunShafts: 0
 --- !u!114 &-1878332245247344467
 MonoBehaviour:

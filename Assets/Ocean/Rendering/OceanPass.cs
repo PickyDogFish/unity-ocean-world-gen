@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -75,7 +74,7 @@ public class OceanUnderwaterEffectPass : ScriptableRenderPass
 
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
     {
-        cmd.GetTemporaryRT(_submergenceTargetID, 32, 32, 0, FilterMode.Bilinear, RenderTextureFormat.R8, RenderTextureReadWrite.Linear, 1);
+        cmd.GetTemporaryRT(_submergenceTargetID, 64, 64, 0, FilterMode.Bilinear, RenderTextureFormat.R8, RenderTextureReadWrite.Linear, 1);
         _submergenceTarget = new RenderTargetIdentifier(_submergenceTargetID);
         cmd.SetRenderTarget(_submergenceTarget);
     }
@@ -101,6 +100,7 @@ public class OceanUnderwaterEffectPass : ScriptableRenderPass
             RenderBufferLoadAction.DontCare, _underwaterEffectMaterial, 0);
         cmd.SetGlobalTexture(SubmergenceTexture, _submergenceTargetID);
 
+
         DrawProceduralFullscreenQuad(cmd, cameraData.renderer.cameraColorTargetHandle,
             RenderBufferLoadAction.Load, _underwaterEffectMaterial, 1);
         context.ExecuteCommandBuffer(cmd);
@@ -123,35 +123,77 @@ public class OceanUnderwaterEffectPass : ScriptableRenderPass
 
 public class OceanSunshaftsPass : ScriptableRenderPass
 {
-    private Material material;
-    private RenderTargetIdentifier raysTexture;
-    private static readonly int raysTexID = Shader.PropertyToID("raysTexture");
+    //private readonly OceanRendererFeature.OceanRenderingSettings _settings;
+    private readonly Material _sunShaftsMaterial;
+    private RenderTargetIdentifier _raysTarget;
+    private RenderTargetIdentifier _blurXTarget;
+    private static readonly int _blurXTargetID = Shader.PropertyToID("_blurXTarget");
+    private static readonly int _raysTargetID = Shader.PropertyToID("_raysTargetID");
+    private static readonly int _sunshaftsTextureID = Shader.PropertyToID("Ocean_SunShaftsTexture");
+
+
     public OceanSunshaftsPass()
     {
-        material = new Material(Shader.Find("Ocean/SunShafts"));
-        renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
+        renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
+        _sunShaftsMaterial = new Material(Shader.Find("Ocean/SunShafts"));
     }
-
 
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
     {
-        cameraTextureDescriptor.colorFormat = RenderTextureFormat.R16;
-        cmd.GetTemporaryRT(raysTexID, 64, 64, 0, FilterMode.Bilinear, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear, 1);
-        raysTexture = new RenderTargetIdentifier(raysTexID);
-        cmd.SetRenderTarget(raysTexture);
+        cmd.GetTemporaryRT(_raysTargetID, 64, 64, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear, 1);
+        _raysTarget = new RenderTargetIdentifier(_raysTargetID);
+        cmd.SetRenderTarget(_raysTarget);
+
+        cmd.GetTemporaryRT(_blurXTargetID, 64, 64, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear, 1);
+        _blurXTarget = new RenderTargetIdentifier(_blurXTargetID);
+        cmd.SetRenderTarget(_blurXTarget);
     }
 
     private void DrawProceduralFullscreenQuad(CommandBuffer cmd, RenderTargetIdentifier target,
-            RenderBufferLoadAction loadAction, Material material, int pass)
+        RenderBufferLoadAction loadAction, Material material, int pass)
     {
         cmd.SetRenderTarget(target, loadAction, RenderBufferStoreAction.Store);
         cmd.DrawProcedural(Matrix4x4.identity, material, pass, MeshTopology.Quads, 4, 1, null);
     }
+
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
-        CommandBuffer cmd = CommandBufferPool.Get("Sun shafts");
-        DrawProceduralFullscreenQuad(cmd, raysTexture, RenderBufferLoadAction.DontCare, material, 0);
-        cmd.Blit(raysTexture, renderingData.cameraData.renderer.cameraColorTargetHandle);
+        CameraData cameraData = renderingData.cameraData;
+        //if (!OceanRendererFeature.IsCorrectCameraType(cameraData.cameraType)) return;
+
+        //Drawing the fullscreen quad
+        CommandBuffer cmd = CommandBufferPool.Get("SS Effect");
+
+        SetupCameraGlobals(cmd, cameraData.camera);
+
+        //ray marching
+        DrawProceduralFullscreenQuad(cmd, _raysTarget, RenderBufferLoadAction.DontCare, _sunShaftsMaterial, 0);    
+        cmd.SetGlobalTexture(_sunshaftsTextureID, _raysTarget);
+
+        //blur x
+        DrawProceduralFullscreenQuad(cmd, _blurXTarget, RenderBufferLoadAction.DontCare, _sunShaftsMaterial, 1);
+
+        //blur y
+        DrawProceduralFullscreenQuad(cmd, _raysTarget, RenderBufferLoadAction.DontCare, _sunShaftsMaterial, 2);
+
+        //Blur
+        DrawProceduralFullscreenQuad(cmd, cameraData.renderer.cameraColorTargetHandle, RenderBufferLoadAction.Load, _sunShaftsMaterial, 3);
+
+
         context.ExecuteCommandBuffer(cmd);
+        cmd.Clear();
+        CommandBufferPool.Release(cmd);
+        context.Submit();
+    }
+
+    private void SetupCameraGlobals(CommandBuffer cmd, Camera cam)
+    {
+        cmd.SetGlobalMatrix(Shader.PropertyToID("Ocean_InverseProjectionMatrix"),
+            GL.GetGPUProjectionMatrix(cam.projectionMatrix, false).inverse);
+    }
+
+    public override void FrameCleanup(CommandBuffer cmd)
+    {
+        cmd.ReleaseTemporaryRT(_raysTargetID);
     }
 }

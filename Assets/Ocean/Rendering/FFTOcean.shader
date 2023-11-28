@@ -35,9 +35,6 @@ Shader "Custom/FFTOcean"
 
             float _Displacement;
 
-            TEXTURE2D(_NormalMap);
-            SAMPLER(sampler_NormalMap);
-
             struct Attributes{
                 float3 position : POSITION;
                 float2 uv : TEXCOORD0;
@@ -55,7 +52,7 @@ Shader "Custom/FFTOcean"
                 v2f output;
 
                 output.positionWS = ClipMapVertex(input.position);//TransformObjectToWorld(input.position);
-                float3 normal = _NormalMap.SampleLevel(sampler_NormalMap, output.positionWS.xz / Ocean_WaveScale, 0.0f);
+                float3 normal = _OceanNormalTex.SampleLevel(sampler_OceanNormalTex, output.positionWS.xz / Ocean_WaveScale, 0.0f);
                 output.normalWS = normal;
                 
                 float3 displacement = _OceanDisplacementTex.SampleLevel(sampler_OceanDisplacementTex, output.positionWS.xz/Ocean_WaveScale, 0.0f);

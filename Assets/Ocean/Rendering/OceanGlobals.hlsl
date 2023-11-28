@@ -3,9 +3,15 @@
 TEXTURE2D(_OceanDisplacementTex);
 SAMPLER(sampler_OceanDisplacementTex);
 
+TEXTURE2D(_OceanNormalTex);
+SAMPLER(sampler_OceanNormalTex);
+
 
 TEXTURE2D(Ocean_CameraSubmergenceTexture);
 SAMPLER(samplerOcean_CameraSubmergenceTexture);
+
+TEXTURE2D(Ocean_SunShaftsTexture);
+SAMPLER(samplerOcean_SunShaftsTexture);
 
 float4x4 Ocean_InverseProjectionMatrix;
 
