@@ -77,7 +77,7 @@ public class OceanUnderwaterEffectPass : ScriptableRenderPass
     {
         cmd.GetTemporaryRT(_submergenceTargetID, 32, 32, 0, FilterMode.Bilinear, RenderTextureFormat.R8, RenderTextureReadWrite.Linear, 1);
         _submergenceTarget = new RenderTargetIdentifier(_submergenceTargetID);
-        ConfigureTarget(_submergenceTarget);
+        cmd.SetRenderTarget(_submergenceTarget);
     }
 
     private void DrawProceduralFullscreenQuad(CommandBuffer cmd, RenderTargetIdentifier target,
@@ -138,7 +138,7 @@ public class OceanSunshaftsPass : ScriptableRenderPass
         cameraTextureDescriptor.colorFormat = RenderTextureFormat.R16;
         cmd.GetTemporaryRT(raysTexID, 64, 64, 0, FilterMode.Bilinear, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear, 1);
         raysTexture = new RenderTargetIdentifier(raysTexID);
-        ConfigureTarget(raysTexture);
+        cmd.SetRenderTarget(raysTexture);
     }
 
     private void DrawProceduralFullscreenQuad(CommandBuffer cmd, RenderTargetIdentifier target,
