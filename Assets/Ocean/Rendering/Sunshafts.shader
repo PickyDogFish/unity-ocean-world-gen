@@ -16,6 +16,9 @@ Shader "Ocean/SunShafts"
             #include "OceanGlobals.hlsl"
             #include "DisplacementSampler.hlsl"
             #include "OceanVolume.hlsl"
+
+            float2 _rayTexSize;
+            int _stepCount;
             
         ENDHLSL
 
@@ -47,6 +50,11 @@ Shader "Ocean/SunShafts"
                 return SampleHeight(positionWS.xz, Ocean_WaveScale);
             }
 
+            float random01( float2 p )
+            {
+                return frac(sin(dot(p, float2(41, 289)))*45758.5453 ); 
+            }
+
             float3 RayMarchFrag(Varyings input) : SV_Target
             {
                 //dont render rays when above the water surface
@@ -62,16 +70,15 @@ Shader "Ocean/SunShafts"
                 float rayLength = length(rayVector);
                 rayLength = min(rayLength, 75); //75 is the hardcoded max distance for now
 
-                int stepCount = 25;
-                float stepLength = rayLength / stepCount; // 25 is the hardcoded amount of steps for now
+                float stepLength = rayLength / _stepCount; // 25 is the hardcoded amount of steps for now
                 float3 step = rayDirection * stepLength;
 
-                float3 currentPosition = startPosition;
+                float3 currentPosition = startPosition + random01(input.uv) * stepLength;
                 float lightSum = 0;
 
                 float3 testResult;
 
-                for (int i = 0; i < stepCount; i++){
+                for (int i = 0; i < _stepCount; i++){
                     float3 surfacePositionWS = currentPosition - currentPosition.y * (_MainLightPosition.xyz / _MainLightPosition.y); // _MainLightPosition is a normalized vector pointing towards the light. Scaling it to have y = 1. Result is point at world y = 0.
                     float3 normal = SampleNormal(surfacePositionWS.xz);
                     float distThroughWater = length(surfacePositionWS - currentPosition);
@@ -81,8 +88,8 @@ Shader "Ocean/SunShafts"
                     currentPosition += step;
                 } 
 
-                lightSum /= stepCount;
-                return lightSum;
+                lightSum /= _stepCount;
+                return saturate(lightSum);
             }
 
             ENDHLSL
@@ -97,10 +104,21 @@ Shader "Ocean/SunShafts"
             #pragma vertex ProceduralFullscreenVert
             #pragma fragment BlurXFrag
 
+            static const float weight[5] = {0.2270270270, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162};
+            //static const float weight[8] = { 0.14446445, 0.13543542, 0.11153505, 0.08055309, 0.05087564, 0.02798160, 0.01332457, 0.00545096};
+
             half4 BlurXFrag(Varyings input) : SV_TARGET
             {
-                float shafts = SAMPLE_TEXTURE2D(Ocean_SunShaftsTexture, samplerOcean_SunShaftsTexture, input.uv).r;
-                return shafts;
+                float step = 1.0 / _rayTexSize.x;
+
+                float color = SAMPLE_TEXTURE2D(Ocean_SunShaftsTexture, samplerOcean_SunShaftsTexture, input.uv).r  * weight[0];
+                for (int i=1; i < 5; i++) {
+                    float2 sampleUV = saturate(input.uv + float2(0.0, i * step));
+                    color += SAMPLE_TEXTURE2D(Ocean_SunShaftsTexture, samplerOcean_SunShaftsTexture, sampleUV).r * weight[i];
+                    sampleUV = saturate(input.uv - float2(0.0, i * step));
+                    color += SAMPLE_TEXTURE2D(Ocean_SunShaftsTexture, samplerOcean_SunShaftsTexture, sampleUV).r * weight[i];
+                }
+                return color;
             }
 
             ENDHLSL
@@ -115,13 +133,24 @@ Shader "Ocean/SunShafts"
             #pragma vertex ProceduralFullscreenVert
             #pragma fragment BlurYFrag
 
+            static const float weight[5] = {0.2270270270, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162};
+            //static const float weight[8] = { 0.14446445, 0.13543542, 0.11153505, 0.08055309, 0.05087564, 0.02798160, 0.01332457, 0.00545096};
+
             TEXTURE2D(_blurXTarget);
             SAMPLER(sampler_blurXTarget);
 
             half4 BlurYFrag(Varyings input) : SV_TARGET
             {
-                float shafts = SAMPLE_TEXTURE2D(_blurXTarget, sampler_blurXTarget, input.uv).r;
-                return shafts;
+                float step = 1.0 / _rayTexSize.y;
+
+                float color = SAMPLE_TEXTURE2D(_blurXTarget, sampler_blurXTarget, input.uv).r * weight[0];
+                for (int i=1; i < 5; i++) {
+                    float2 sampleUV = saturate(input.uv + float2(i * step, 0.0));
+                    color += SAMPLE_TEXTURE2D(_blurXTarget, sampler_blurXTarget, sampleUV).r * weight[i];
+                    sampleUV = saturate(input.uv - float2(i * step, 0.0));
+                    color += SAMPLE_TEXTURE2D(_blurXTarget, sampler_blurXTarget, sampleUV).r * weight[i];
+                }
+                return color;
             }
 
             ENDHLSL
@@ -151,7 +180,7 @@ Shader "Ocean/SunShafts"
 
                 float3 backgroundColor = SampleSceneColor(input.uv);
                 float3 finalColor =  backgroundColor + shafts;// underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, viewDist, backgroundColor);
-                return float4(finalColor, 0);// * submergence +  float3(0.3,0.5,0.9) * (1-submergence), 1);
+                return shafts;// * submergence +  float3(0.3,0.5,0.9) * (1-submergence), 1);
             }
             ENDHLSL
         }

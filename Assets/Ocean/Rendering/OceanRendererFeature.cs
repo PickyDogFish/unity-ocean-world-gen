@@ -10,6 +10,9 @@ public class OceanRendererFeature : ScriptableRendererFeature
     OceanSunshaftsPass m_SunShaftsPass;
     [SerializeField] private bool renderUnderwater = true;
     [SerializeField] private bool renderSunShafts = true;
+    [SerializeField] private bool SS_Blur = true;
+    [SerializeField] private int SS_Downsampling = 1;
+    [SerializeField] private int SS_StepCount = 25;
 
     public override void Create()
     {
@@ -32,6 +35,7 @@ public class OceanRendererFeature : ScriptableRendererFeature
             
             if (renderSunShafts){
                 m_SunShaftsPass.ConfigureInput(ScriptableRenderPassInput.Depth);
+                m_SunShaftsPass.SetPassParameters(SS_Blur, SS_Downsampling, SS_StepCount);
                 renderer.EnqueuePass(m_SunShaftsPass);
             }
 

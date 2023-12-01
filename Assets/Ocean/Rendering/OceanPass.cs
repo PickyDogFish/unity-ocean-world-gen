@@ -130,6 +130,10 @@ public class OceanSunshaftsPass : ScriptableRenderPass
     private static readonly int _blurXTargetID = Shader.PropertyToID("_blurXTarget");
     private static readonly int _raysTargetID = Shader.PropertyToID("_raysTargetID");
     private static readonly int _sunshaftsTextureID = Shader.PropertyToID("Ocean_SunShaftsTexture");
+    private int downsampleFactor = 1;
+    private bool blurSunShafts = true;
+    private int stepCount = 25;
+    private Vector2Int rayTexSize;
 
 
     public OceanSunshaftsPass()
@@ -140,13 +144,25 @@ public class OceanSunshaftsPass : ScriptableRenderPass
 
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
     {
-        cmd.GetTemporaryRT(_raysTargetID, 64, 64, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear, 1);
+        rayTexSize = new Vector2Int(cameraTextureDescriptor.height /downsampleFactor, cameraTextureDescriptor.width / downsampleFactor);
+        _sunShaftsMaterial.SetVector("_rayTexSize", new Vector4(rayTexSize.x, rayTexSize.y, 0, 0));
+
+
+        cmd.GetTemporaryRT(_raysTargetID, rayTexSize.x, rayTexSize.y, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear, 1);
         _raysTarget = new RenderTargetIdentifier(_raysTargetID);
         cmd.SetRenderTarget(_raysTarget);
 
-        cmd.GetTemporaryRT(_blurXTargetID, 64, 64, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear, 1);
+        cmd.GetTemporaryRT(_blurXTargetID, rayTexSize.x, rayTexSize.y, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear, 1);
         _blurXTarget = new RenderTargetIdentifier(_blurXTargetID);
         cmd.SetRenderTarget(_blurXTarget);
+    }
+
+    public void SetPassParameters(bool blur, int downSampleFactor, int rayMarchStepCount){
+        this.blurSunShafts = blur;
+        this.downsampleFactor = downSampleFactor;
+        this.stepCount = rayMarchStepCount;
+        _sunShaftsMaterial.SetInt("_stepCount", stepCount);
+        Debug.Log(stepCount);
     }
 
     private void DrawProceduralFullscreenQuad(CommandBuffer cmd, RenderTargetIdentifier target,
@@ -170,13 +186,14 @@ public class OceanSunshaftsPass : ScriptableRenderPass
         DrawProceduralFullscreenQuad(cmd, _raysTarget, RenderBufferLoadAction.DontCare, _sunShaftsMaterial, 0);    
         cmd.SetGlobalTexture(_sunshaftsTextureID, _raysTarget);
 
-        //blur x
-        DrawProceduralFullscreenQuad(cmd, _blurXTarget, RenderBufferLoadAction.DontCare, _sunShaftsMaterial, 1);
+        if (blurSunShafts){
+            //blur x
+            DrawProceduralFullscreenQuad(cmd, _blurXTarget, RenderBufferLoadAction.DontCare, _sunShaftsMaterial, 1);
+            //blur y
+            DrawProceduralFullscreenQuad(cmd, _raysTarget, RenderBufferLoadAction.DontCare, _sunShaftsMaterial, 2);
+        }
 
-        //blur y
-        DrawProceduralFullscreenQuad(cmd, _raysTarget, RenderBufferLoadAction.DontCare, _sunShaftsMaterial, 2);
-
-        //Blur
+        //compositing
         DrawProceduralFullscreenQuad(cmd, cameraData.renderer.cameraColorTargetHandle, RenderBufferLoadAction.Load, _sunShaftsMaterial, 3);
 
 
