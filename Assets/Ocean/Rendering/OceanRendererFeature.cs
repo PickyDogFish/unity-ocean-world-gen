@@ -10,12 +10,8 @@ public class OceanRendererFeature : ScriptableRendererFeature
     OceanSunshaftsPass m_SunShaftsPass;
     [SerializeField] private bool renderUnderwater = true;
     [SerializeField] private bool renderSunShafts = true;
-    [SerializeField] private bool SS_Preview = false;
-    [SerializeField] private bool SS_Blur = true;
-    [SerializeField] private int SS_Downsampling = 1;
-    [SerializeField] private int SS_StepCount = 25;
-    [SerializeField] private float SS_maxDistance = 50;
-    [SerializeField] [Range(0,1)] private float SS_Anisotropy = 0.6f;
+
+    [SerializeField] private OceanSunshaftsPass.SunShaftSettings sunShaftSettings = new OceanSunshaftsPass.SunShaftSettings();
 
     public override void Create()
     {
@@ -33,7 +29,7 @@ public class OceanRendererFeature : ScriptableRendererFeature
         if (renderingData.cameraData.cameraType == CameraType.Game || renderingData.cameraData.cameraType == CameraType.SceneView){
             if (renderSunShafts){
                 m_SunShaftsPass.ConfigureInput(ScriptableRenderPassInput.Depth);
-                m_SunShaftsPass.SetPassParameters(SS_Blur, SS_Downsampling, SS_StepCount, SS_Preview, SS_maxDistance, SS_Anisotropy);
+                m_SunShaftsPass.SetPassParameters(sunShaftSettings);
                 renderer.EnqueuePass(m_SunShaftsPass);
             }
             if (renderUnderwater){

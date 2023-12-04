@@ -1,3 +1,5 @@
+using System;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -123,6 +125,24 @@ public class OceanUnderwaterEffectPass : ScriptableRenderPass
 
 public class OceanSunshaftsPass : ScriptableRenderPass
 {
+    [Serializable]
+    public class SunShaftSettings{
+        public SunShaftSettings(int downsamplingFactor = 1, bool blur = true, bool preview = false, int stepCount = 25, float anisotropy = 0.7f, float maxDistance = 50 ){
+            this.downsamplingFactor = math.clamp(downsamplingFactor, 1, 16);
+            this.blur = blur;
+            this.preview = preview;
+            this.stepCount = stepCount;
+            this.anisotropy = anisotropy;
+            this.maxDistance = maxDistance;
+        }
+        public int downsamplingFactor;
+        public bool blur;
+        public bool preview;
+        public int stepCount;
+        public float maxDistance;
+        public float anisotropy;
+    }
+
     //private readonly OceanRendererFeature.OceanRenderingSettings _settings;
     private readonly Material _sunShaftsMaterial;
     private RenderTargetIdentifier _raysTarget;
@@ -130,12 +150,9 @@ public class OceanSunshaftsPass : ScriptableRenderPass
     private static readonly int _blurXTargetID = Shader.PropertyToID("_blurXTarget");
     private static readonly int _raysTargetID = Shader.PropertyToID("_raysTargetID");
     private static readonly int _sunshaftsTextureID = Shader.PropertyToID("Ocean_SunShaftsTexture");
-    private int downsampleFactor = 1;
-    private bool blurSunShafts = true;
-    private bool sunShaftPreview = false;
-    private int stepCount = 25;
     private Vector2Int rayTexSize;
 
+    private SunShaftSettings settings;
 
     public OceanSunshaftsPass()
     {
@@ -145,7 +162,7 @@ public class OceanSunshaftsPass : ScriptableRenderPass
 
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
     {
-        rayTexSize = new Vector2Int(cameraTextureDescriptor.height /downsampleFactor, cameraTextureDescriptor.width / downsampleFactor);
+        rayTexSize = new Vector2Int(cameraTextureDescriptor.height /settings.downsamplingFactor, cameraTextureDescriptor.width / settings.downsamplingFactor);
         _sunShaftsMaterial.SetVector("_rayTexSize", new Vector4(rayTexSize.x, rayTexSize.y, 0, 0));
 
 
@@ -158,14 +175,9 @@ public class OceanSunshaftsPass : ScriptableRenderPass
         cmd.SetRenderTarget(_blurXTarget);
     }
 
-    public void SetPassParameters(bool blur, int downSampleFactor, int rayMarchStepCount, bool preview, float maxRayDistance, float phaseAnisotrophy){
-        this.blurSunShafts = blur;
-        this.downsampleFactor = downSampleFactor;
-        this.stepCount = rayMarchStepCount;
-        this.sunShaftPreview = preview;
-        _sunShaftsMaterial.SetInt("_stepCount", stepCount);
-        _sunShaftsMaterial.SetFloat("_maxDistance", maxRayDistance);
-        _sunShaftsMaterial.SetFloat("_anisotrophy", phaseAnisotrophy);
+    public void SetPassParameters(SunShaftSettings newSettings){
+        this.settings = newSettings;
+        SetMaterialParameters();
     }
 
     private void DrawProceduralFullscreenQuad(CommandBuffer cmd, RenderTargetIdentifier target,
@@ -186,14 +198,14 @@ public class OceanSunshaftsPass : ScriptableRenderPass
         DrawProceduralFullscreenQuad(cmd, _raysTarget, RenderBufferLoadAction.DontCare, _sunShaftsMaterial, 0);    
         cmd.SetGlobalTexture(_sunshaftsTextureID, _raysTarget);
 
-        if (blurSunShafts){
+        if (settings.blur){
             //blur x
             DrawProceduralFullscreenQuad(cmd, _blurXTarget, RenderBufferLoadAction.DontCare, _sunShaftsMaterial, 1);
             //blur y
             DrawProceduralFullscreenQuad(cmd, _raysTarget, RenderBufferLoadAction.DontCare, _sunShaftsMaterial, 2);
         }
 
-        if (sunShaftPreview){
+        if (settings.preview){
             //compositing
             DrawProceduralFullscreenQuad(cmd, cameraData.renderer.cameraColorTargetHandle, RenderBufferLoadAction.Load, _sunShaftsMaterial, 3);
         }
@@ -209,6 +221,12 @@ public class OceanSunshaftsPass : ScriptableRenderPass
     {
         cmd.SetGlobalMatrix(Shader.PropertyToID("Ocean_InverseProjectionMatrix"),
             GL.GetGPUProjectionMatrix(cam.projectionMatrix, false).inverse);
+    }
+
+    private void SetMaterialParameters(){
+        _sunShaftsMaterial.SetInt("_stepCount", settings.stepCount);
+        _sunShaftsMaterial.SetFloat("_maxDistance", settings.maxDistance);
+        _sunShaftsMaterial.SetFloat("_anisotrophy", settings.anisotropy);
     }
 
     public override void FrameCleanup(CommandBuffer cmd)

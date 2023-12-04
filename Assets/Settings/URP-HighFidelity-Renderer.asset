@@ -20,6 +20,8 @@ MonoBehaviour:
   SS_Blur: 1
   SS_Downsampling: 1
   SS_StepCount: 100
+  SS_maxDistance: 50
+  SS_Anisotropy: 0.76
 --- !u!114 &-1878332245247344467
 MonoBehaviour:
   m_ObjectHideFlags: 0
