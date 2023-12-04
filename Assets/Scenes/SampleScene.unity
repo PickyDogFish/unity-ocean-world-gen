@@ -502,7 +502,7 @@ MonoBehaviour:
   highCutoff: 10000
   updateSpectrum: 0
   repeatTime: 200
-  speed: 1
+  speed: 0.1
   lengthScale: 8
   waveScale: 100
   material: {fileID: 2100000, guid: 7ad6da068747ed349b3e62eab558ffc5, type: 2}

@@ -19,6 +19,8 @@ Shader "Ocean/SunShafts"
 
             float2 _rayTexSize;
             int _stepCount;
+            float _anisotrophy;
+            float _maxDistance;
             
         ENDHLSL
 
@@ -55,8 +57,20 @@ Shader "Ocean/SunShafts"
                 return frac(sin(dot(p, float2(41, 289)))*45758.5453 ); 
             }
 
+            //The henyey-greenstein phase function.
+            float HenyeyGreenstein(float cosTheta)
+            {
+                float anisotrophySquared = _anisotrophy * _anisotrophy;
+                float numerator = 1.0f - anisotrophySquared;
+                float denominator = pow(1.0f + anisotrophySquared - 2.0f * _anisotrophy * cosTheta, 1.5f);
+                return 1.0f / (4.0f * 3.14159265359f) * numerator / denominator;
+            }
+
             float3 RayMarchFrag(Varyings input) : SV_Target
             {
+                //TODO expose this in the editor
+                float intensityMultiplier = 8;
+
                 //dont render rays when above the water surface
                 if (_WorldSpaceCameraPos.y > calcWaterHeight(input.uv)){
                     return 0;
@@ -68,9 +82,9 @@ Shader "Ocean/SunShafts"
                 float3 rayVector = rayEndWorldPos - startPosition;
                 float3 rayDirection =  normalize(rayVector);
                 float rayLength = length(rayVector);
-                rayLength = min(rayLength, 75); //75 is the hardcoded max distance for now
+                rayLength = min(rayLength, _maxDistance);
 
-                float stepLength = rayLength / _stepCount; // 25 is the hardcoded amount of steps for now
+                float stepLength = rayLength / _stepCount;
                 float3 step = rayDirection * stepLength;
 
                 float3 currentPosition = startPosition + random01(input.uv) * stepLength;
@@ -81,15 +95,18 @@ Shader "Ocean/SunShafts"
                 for (int i = 0; i < _stepCount; i++){
                     float3 surfacePositionWS = currentPosition - currentPosition.y * (_MainLightPosition.xyz / _MainLightPosition.y); // _MainLightPosition is a normalized vector pointing towards the light. Scaling it to have y = 1. Result is point at world y = 0.
                     float3 normal = SampleNormal(surfacePositionWS.xz);
-                    float distThroughWater = length(surfacePositionWS - currentPosition);
+                    float distFromSurface = length(surfacePositionWS - currentPosition);
+                    float lightAtCurrentPosition = HenyeyGreenstein(dot(normal, _MainLightPosition)) * pow(saturate(1 - distFromSurface/50),2);
 
-                    float light = dot(normal, _MainLightPosition) * pow(saturate(1 - distThroughWater/50),2);
+                    float distFromCamera = length(_WorldSpaceCameraPos - currentPosition);
+                    float light = lightAtCurrentPosition * HenyeyGreenstein(dot(rayDirection, _MainLightPosition.xyz)) * pow(saturate(1-distFromCamera/50), 2);
                     lightSum += saturate(light);
                     currentPosition += step;
                 } 
-
+                //to avoid rays being much brighter for closer objects at low step count
+                lightSum *= (rayLength / _maxDistance);
                 lightSum /= _stepCount;
-                return saturate(lightSum);
+                return saturate(lightSum * intensityMultiplier);
             }
 
             ENDHLSL

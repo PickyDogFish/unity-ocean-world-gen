@@ -99,26 +99,23 @@ Shader "Custom/FFTOcean"
 
                 float depthDif = length(WPFromDepth - IN.positionWS);
 
+                IN.normalWS = IN.normalWS;
 
-
-                IN.normalWS = IN.normalWS * 0.5;
-
-                
-            
-                float3 backgroundColor = SampleSceneColor(screenUV);
-                float3 colorThroughWater = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, depthDif, backgroundColor);
+                float3 finalColor = 0;
 
                 float3 reflectionDir = reflect(viewDirection, IN.normalWS);
                 float3 reflectionColor = SampleOceanCubeMap(reflectionDir);
-
                 float fernel = SchlickFresnel(IN.normalWS, viewDirection);
-                
-                float3 finalColor = lerp(colorThroughWater, reflectionColor, fernel);
+            
+                float3 backgroundColor = SampleSceneColor(screenUV);
+                float3 colorThroughWater = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, depthDif, backgroundColor, 0);
+                finalColor = lerp(colorThroughWater, reflectionColor, fernel);
 
 
                 //If looking at the back face
                 if (facing < 0 ){
-                    finalColor = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, length(IN.positionWS - _WorldSpaceCameraPos), finalColor);
+                    float sunshafts = SAMPLE_TEXTURE2D(Ocean_SunShaftsTexture, samplerOcean_SunShaftsTexture, screenUV).r;
+                    finalColor = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, length(IN.positionWS - _WorldSpaceCameraPos), finalColor, sunshafts);
                 }
                 //finalColor = reflectionColor;
                 return saturate(float4(finalColor,1));

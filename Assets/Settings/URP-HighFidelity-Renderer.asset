@@ -16,6 +16,10 @@ MonoBehaviour:
   waterShader: {fileID: 4800000, guid: 29fe84121e4f79040bd739e039495586, type: 3}
   renderUnderwater: 1
   renderSunShafts: 1
+  SS_Preview: 0
+  SS_Blur: 1
+  SS_Downsampling: 1
+  SS_StepCount: 100
 --- !u!114 &-1878332245247344467
 MonoBehaviour:
   m_ObjectHideFlags: 0

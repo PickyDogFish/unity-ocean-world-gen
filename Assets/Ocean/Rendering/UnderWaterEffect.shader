@@ -76,7 +76,8 @@ Shader "Ocean/UnderwaterEffect"
             float3 forward = mul(UNITY_MATRIX_V, float4(0, 0, 1, 0)).xyz;
 
             float3 backgroundColor = SampleSceneColor(input.uv);
-            float3 finalColor = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, viewDist, backgroundColor);
+            float sunshafts = SAMPLE_TEXTURE2D(Ocean_SunShaftsTexture, samplerOcean_SunShaftsTexture, input.uv).r;
+            float3 finalColor = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, viewDist, backgroundColor, sunshafts);
             return float4(finalColor, 0);// * submergence +  float3(0.3,0.5,0.9) * (1-submergence), 1);
         }
             ENDHLSL

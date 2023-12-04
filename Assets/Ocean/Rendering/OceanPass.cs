@@ -132,6 +132,7 @@ public class OceanSunshaftsPass : ScriptableRenderPass
     private static readonly int _sunshaftsTextureID = Shader.PropertyToID("Ocean_SunShaftsTexture");
     private int downsampleFactor = 1;
     private bool blurSunShafts = true;
+    private bool sunShaftPreview = false;
     private int stepCount = 25;
     private Vector2Int rayTexSize;
 
@@ -157,12 +158,14 @@ public class OceanSunshaftsPass : ScriptableRenderPass
         cmd.SetRenderTarget(_blurXTarget);
     }
 
-    public void SetPassParameters(bool blur, int downSampleFactor, int rayMarchStepCount){
+    public void SetPassParameters(bool blur, int downSampleFactor, int rayMarchStepCount, bool preview, float maxRayDistance, float phaseAnisotrophy){
         this.blurSunShafts = blur;
         this.downsampleFactor = downSampleFactor;
         this.stepCount = rayMarchStepCount;
+        this.sunShaftPreview = preview;
         _sunShaftsMaterial.SetInt("_stepCount", stepCount);
-        Debug.Log(stepCount);
+        _sunShaftsMaterial.SetFloat("_maxDistance", maxRayDistance);
+        _sunShaftsMaterial.SetFloat("_anisotrophy", phaseAnisotrophy);
     }
 
     private void DrawProceduralFullscreenQuad(CommandBuffer cmd, RenderTargetIdentifier target,
@@ -175,11 +178,8 @@ public class OceanSunshaftsPass : ScriptableRenderPass
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
         CameraData cameraData = renderingData.cameraData;
-        //if (!OceanRendererFeature.IsCorrectCameraType(cameraData.cameraType)) return;
 
-        //Drawing the fullscreen quad
         CommandBuffer cmd = CommandBufferPool.Get("SS Effect");
-
         SetupCameraGlobals(cmd, cameraData.camera);
 
         //ray marching
@@ -193,8 +193,10 @@ public class OceanSunshaftsPass : ScriptableRenderPass
             DrawProceduralFullscreenQuad(cmd, _raysTarget, RenderBufferLoadAction.DontCare, _sunShaftsMaterial, 2);
         }
 
-        //compositing
-        DrawProceduralFullscreenQuad(cmd, cameraData.renderer.cameraColorTargetHandle, RenderBufferLoadAction.Load, _sunShaftsMaterial, 3);
+        if (sunShaftPreview){
+            //compositing
+            DrawProceduralFullscreenQuad(cmd, cameraData.renderer.cameraColorTargetHandle, RenderBufferLoadAction.Load, _sunShaftsMaterial, 3);
+        }
 
 
         context.ExecuteCommandBuffer(cmd);
@@ -212,5 +214,6 @@ public class OceanSunshaftsPass : ScriptableRenderPass
     public override void FrameCleanup(CommandBuffer cmd)
     {
         cmd.ReleaseTemporaryRT(_raysTargetID);
+        cmd.ReleaseTemporaryRT(_blurXTargetID);
     }
 }
