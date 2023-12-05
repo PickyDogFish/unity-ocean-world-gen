@@ -628,12 +628,7 @@ MonoBehaviour:
   percentUnderwater: 0.25
   widthScale: 64
   heightScale: 128
-  rockLayer: {fileID: 8574412962073106934, guid: 971b10a25f1d566428beaf88ec5bc4ce,
-    type: 2}
-  grassLayer: {fileID: 8574412962073106934, guid: ab1aed2c98fa1f742a8b71de8b325a45,
-    type: 2}
-  sandLayer: {fileID: 8574412962073106934, guid: 7bf43befbc9e53242b00b383f21b04df,
-    type: 2}
+  templateTerrain: {fileID: 15600000, guid: 88f91d9a0f0d2764d84ed736c73d9ef1, type: 2}
 --- !u!4 &1254785112
 Transform:
   m_ObjectHideFlags: 0

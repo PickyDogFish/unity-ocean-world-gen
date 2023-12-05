@@ -1,13 +1,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Drawing;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.TerrainUtils;
 
 public class TerrainGen : MonoBehaviour
 {
@@ -17,7 +12,7 @@ public class TerrainGen : MonoBehaviour
 
     [Header("Overall settings")]
     [SerializeField] private float noiseScale = 1;
-    [Range(0,1)][SerializeField] private float percentUnderwater = 0.6f;
+    [Range(0, 1)][SerializeField] private float percentUnderwater = 0.6f;
 
     [Header("Chunk settings")]
     [SerializeField] private int widthScale = 64;
@@ -27,9 +22,7 @@ public class TerrainGen : MonoBehaviour
 
 
     [Header("Texture settings")]
-    [SerializeField] TerrainLayer rockLayer;
-    [SerializeField] TerrainLayer grassLayer;
-    [SerializeField] TerrainLayer sandLayer;
+    [SerializeField] TerrainData templateTerrain;
 
     private int heightmapResolution { get { return widthScale + 1; } } //apparently has to be one more
     private int detailResolution { get { return widthScale; } }
@@ -74,7 +67,8 @@ public class TerrainGen : MonoBehaviour
             ShowTerrain(newChunk);
         }
         List<Vector2Int> chunksToHide = shownTileDictionary.Keys.Except(tilesInRange).ToList();
-        foreach (Vector2Int outOfRangeTile in chunksToHide){
+        foreach (Vector2Int outOfRangeTile in chunksToHide)
+        {
             HideTerrain(outOfRangeTile);
         }
     }
@@ -87,12 +81,16 @@ public class TerrainGen : MonoBehaviour
     /// Sets terrain tile to active if already generated, otherwise generates new terrain tile. Handles dictionaries
     /// </summary>
     /// <param name="terrainCoords"></param>
-    public void ShowTerrain(Vector2Int terrainCoords) {
-        if (generatedTileDictionary.ContainsKey(terrainCoords)){
+    public void ShowTerrain(Vector2Int terrainCoords)
+    {
+        if (generatedTileDictionary.ContainsKey(terrainCoords))
+        {
             Terrain tile = generatedTileDictionary[terrainCoords];
             tile.gameObject.SetActive(true);
             shownTileDictionary.TryAdd(terrainCoords, tile);
-        } else {
+        }
+        else
+        {
             AddTerrain(terrainCoords);
         }
     }
@@ -183,13 +181,42 @@ public class TerrainGen : MonoBehaviour
         terrainData.SetDetailResolution(detailResolution, detailResolutionPerPatch);
 
         terrainData.name = name + tileCoords.ToString();
-        terrainData.terrainLayers = new TerrainLayer[3] { rockLayer, grassLayer, sandLayer };
-        terrainData.SetAlphamaps(0, 0, CreateAlphaMap(terrainData, heights));
+        terrainData.terrainLayers = templateTerrain.terrainLayers;
+        terrainData.SetAlphamaps(0, 0, CreateTextureAlphaMap(terrainData, heights));
+
+
+        terrainData.detailPrototypes = templateTerrain.detailPrototypes;
+        terrainData.SetDetailScatterMode(DetailScatterMode.CoverageMode);
+        int[,] detailMap = terrainData.GetDetailLayer(0, 0, terrainData.detailWidth, terrainData.detailHeight, 0);
+        detailMap = CreateDetailAlphaMap(detailMap, heights);
+        terrainData.SetDetailLayer(0, 0, 0, detailMap);
+        terrainData.SetDetailLayer(0, 0, 1, detailMap);
+        terrainData.SetDetailLayer(0, 0, 2, detailMap);
+        terrainData.SetDetailLayer(0, 0, 3, detailMap);
+
 
         return terrainData;
     }
 
-    private float[,,] CreateAlphaMap(TerrainData terrainData, float[,] heights)
+
+    private int[,] CreateDetailAlphaMap(int[,] detailMap, float[,] heights)
+    {
+        // For each point on the alphamap...
+        for (int y = 0; y < detailMap.GetLength(1); y++)
+        {
+            for (int x = 0; x < detailMap.GetLength(0); x++)
+            {
+                float height = WorldSpaceHeight(heights[x, y]);
+                if (height > 0)
+                {
+                    detailMap[x, y] = 500;
+                }
+            }
+        }
+        return detailMap;
+    }
+
+    private float[,,] CreateTextureAlphaMap(TerrainData terrainData, float[,] heights)
     {
 
         float[,,] map = new float[terrainData.alphamapWidth, terrainData.alphamapHeight, 3];
