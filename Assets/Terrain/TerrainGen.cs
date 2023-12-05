@@ -110,7 +110,7 @@ public class TerrainGen : MonoBehaviour
     }
 
     /// <summary>
-    /// generates a terrain tile, sets the terrain neighbors and adds it to generated and shown dictionaries 
+    /// Generates a terrain tile, sets the terrain neighbors and adds it to generated and shown dictionaries 
     /// </summary>
     /// <param name="terrainCoords"></param>
     public void AddTerrain(Vector2Int terrainCoords)
@@ -193,8 +193,6 @@ public class TerrainGen : MonoBehaviour
         terrainData.SetDetailLayer(0, 0, 1, detailMap);
         terrainData.SetDetailLayer(0, 0, 2, detailMap);
         terrainData.SetDetailLayer(0, 0, 3, detailMap);
-
-
         return terrainData;
     }
 
@@ -254,6 +252,12 @@ public class TerrainGen : MonoBehaviour
         return map;
     }
 
+    /// <summary>
+    /// Returns a list of chunks in range of worldPos
+    /// </summary>
+    /// <param name="worldPos"></param>
+    /// <param name="range">Range in chunks</param>
+    /// <returns></returns>
     private List<Vector2Int> ChunkCoordsInRange(Vector3 worldPos, int range)
     {
         Vector2Int chunkPos = WorldToChunkCoords(new Vector2(worldPos.x, worldPos.z));
