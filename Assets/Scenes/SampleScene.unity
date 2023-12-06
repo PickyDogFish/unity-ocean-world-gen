@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: 05b636e82c2baef4e8f5e563210712d8, type: 2}
+  m_SkyboxMaterial: {fileID: 2100000, guid: bf0a0fb446a35fc4c81555b7995c4dc7, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 410087040}
-  m_IndirectSpecularColor: {r: 0.09944981, g: 0.1680904, b: 0.3670404, a: 1}
+  m_IndirectSpecularColor: {r: 0.33406213, g: 0.12628403, b: 0.23463643, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -626,7 +626,7 @@ MonoBehaviour:
   tileRange: 5
   noiseScale: 0.1
   percentUnderwater: 0.25
-  widthScale: 64
+  widthScale: 32
   heightScale: 128
   templateTerrain: {fileID: 15600000, guid: 88f91d9a0f0d2764d84ed736c73d9ef1, type: 2}
 --- !u!4 &1254785112

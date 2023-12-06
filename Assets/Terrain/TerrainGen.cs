@@ -168,9 +168,9 @@ public class TerrainGen : MonoBehaviour
     {
         TerrainData terrainData = new TerrainData();
 
-        terrainData.size = new Vector3(widthScale / 2f,
+        terrainData.size = new Vector3(widthScale,
                                         heightScale,
-                                        widthScale / 2f);
+                                        widthScale);
 
         terrainData.baseMapResolution = baseTextureResolution;
         terrainData.heightmapResolution = heightmapResolution;
