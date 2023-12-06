@@ -26,6 +26,8 @@ float Ocean_RefractionIntensity;
 
 float Ocean_WaveScale;
 
+float Ocean_NormalStrength;
+
 
 float3 SampleOceanCubeMap(float3 dir)
 {

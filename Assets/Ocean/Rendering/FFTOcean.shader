@@ -94,27 +94,29 @@ Shader "Custom/FFTOcean"
                 float2 screenUV = IN.positionHCS.xy / _ScaledScreenParams.xy;
                 float3 refracted = refract(viewDirection, IN.normalWS, 1.0/1.33);
                 screenUV += refracted.xz * Ocean_RefractionIntensity;
-
                 float3 WPFromDepth = worldPositionFromDepth(screenUV);
-
                 float depthDif = length(WPFromDepth - IN.positionWS);
 
-                IN.normalWS = IN.normalWS;
-
                 float3 finalColor = 0;
-
-                float3 reflectionDir = reflect(viewDirection, IN.normalWS);
-                float3 reflectionColor = SampleOceanCubeMap(reflectionDir);
                 float fernel = SchlickFresnel(IN.normalWS, viewDirection);
-            
                 float3 backgroundColor = SampleSceneColor(screenUV);
-                float3 colorThroughWater = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, depthDif, backgroundColor, 0);
-                finalColor = lerp(colorThroughWater, reflectionColor, fernel);
+                
+                //if looking at the front face
+                if (facing >= 0){
+                    float3 reflectionDir = reflect(-viewDirection, -IN.normalWS);
+                    float3 reflectionColor = SampleOceanCubeMap(reflectionDir);
+                    float3 colorThroughWater = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, depthDif, backgroundColor, 0);
+                    finalColor = lerp(colorThroughWater, reflectionColor, fernel);
+                }
 
 
                 //If looking at the back face
                 if (facing < 0 ){
+                    float3 reflectionDir = reflect(viewDirection, IN.normalWS);
+                    float3 reflectionColor = SampleOceanCubeMap(reflectionDir);
                     float sunshafts = SAMPLE_TEXTURE2D(Ocean_SunShaftsTexture, samplerOcean_SunShaftsTexture, screenUV).r;
+                    float3 colorThroughWater = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, 0, backgroundColor, 0);
+                    finalColor = lerp(colorThroughWater, reflectionColor, fernel);
                     finalColor = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, length(IN.positionWS - _WorldSpaceCameraPos), finalColor, sunshafts);
                 }
                 //finalColor = reflectionColor;
