@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 698031c1e0fc0234d9c5d3b88f60aca1, type: 3}
+  m_Name: RDSquiglyLines
+  m_EditorClassIdentifier: 
+  feed: 0.055
+  useFeedTexture: 1
+  feedTexture: {fileID: 2800000, guid: e98d03927fb7cac46a98f32099947a8b, type: 3}
+  feedTexStrength: 0.099
+  flowTexture: {fileID: 2800000, guid: b7ba210ac065d6f46ad7cc2bc5798266, type: 3}
+  flowIntensity: 1
+  kill: 0.062
+  du: 1
+  dv: 0.5
+  speed: 1
+  initialTexture: {fileID: 2800000, guid: 7b9cf13f9b9feb54cb94634b9dea39db, type: 3}
+  resolution: 512

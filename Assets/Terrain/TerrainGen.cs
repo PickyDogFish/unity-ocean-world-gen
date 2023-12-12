@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class TerrainGen : MonoBehaviour
@@ -37,7 +38,13 @@ public class TerrainGen : MonoBehaviour
 
     void Awake()
     {
-        noiseCS = Resources.Load<ComputeShader>("NoiseGenerator");
+        InitializeTerrainGen();
+    }
+
+    public void InitializeTerrainGen(){
+        if (noiseCS == null){
+            noiseCS = Resources.Load<ComputeShader>("NoiseGenerator");
+        }
     }
     void Start()
     {
@@ -61,20 +68,29 @@ public class TerrainGen : MonoBehaviour
 
     void Update()
     {
+        GenerateAndShowNearbyTerrain();
+        HideFarTerrain();
+    }
+    private void PrintNeighbors(Vector2Int terrainCoords)
+    {
+        Debug.Log(terrainCoords + "    left: " + generatedTileDictionary[terrainCoords].leftNeighbor + "    top: " + generatedTileDictionary[terrainCoords].topNeighbor + "    right: " + generatedTileDictionary[terrainCoords].rightNeighbor + "    bottom: " + generatedTileDictionary[terrainCoords].bottomNeighbor);
+    }
+
+    public void GenerateAndShowNearbyTerrain(){
         List<Vector2Int> tilesInRange = ChunkCoordsInRange(cameraTransform.position, tileRange);
         foreach (Vector2Int newChunk in tilesInRange)
         {
             ShowTerrain(newChunk);
         }
+    }
+
+    public void HideFarTerrain(){
+        List<Vector2Int> tilesInRange = ChunkCoordsInRange(cameraTransform.position, tileRange);
         List<Vector2Int> chunksToHide = shownTileDictionary.Keys.Except(tilesInRange).ToList();
         foreach (Vector2Int outOfRangeTile in chunksToHide)
         {
             HideTerrain(outOfRangeTile);
         }
-    }
-    private void PrintNeighbors(Vector2Int terrainCoords)
-    {
-        Debug.Log(terrainCoords + "    left: " + generatedTileDictionary[terrainCoords].leftNeighbor + "    top: " + generatedTileDictionary[terrainCoords].topNeighbor + "    right: " + generatedTileDictionary[terrainCoords].rightNeighbor + "    bottom: " + generatedTileDictionary[terrainCoords].bottomNeighbor);
     }
 
     /// <summary>
@@ -146,6 +162,15 @@ public class TerrainGen : MonoBehaviour
             terrain.SetNeighbors(terrain.leftNeighbor, terrain.topNeighbor, terrain.rightNeighbor, bottomTile);
             bottomTile.SetNeighbors(bottomTile.leftNeighbor, terrain, bottomTile.rightNeighbor, bottomTile.bottomNeighbor);
         }
+    }
+
+    public void RemoveAllTerrain(){
+        foreach (Vector2Int terrainCoords in generatedTileDictionary.Keys){
+            shownTileDictionary.Remove(terrainCoords);
+            DestroyImmediate(GameObject.Find("Terrain" + terrainCoords.ToString()));
+
+        }
+        generatedTileDictionary.Clear();
     }
 
     public Terrain CreateTerrainTile(Vector2Int terrainCoords)

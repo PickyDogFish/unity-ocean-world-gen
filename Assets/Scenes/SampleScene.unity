@@ -624,7 +624,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cameraTransform: {fileID: 1271878029}
   tileRange: 5
-  noiseScale: 0.1
+  noiseScale: 0.3
   percentUnderwater: 0.25
   widthScale: 32
   heightScale: 128
