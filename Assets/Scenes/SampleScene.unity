@@ -623,11 +623,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cameraTransform: {fileID: 1271878029}
-  tileRange: 5
-  noiseScale: 0.3
-  percentUnderwater: 0.25
-  widthScale: 32
-  heightScale: 128
+  tileRange: 3
+  percentUnderwater: 0.5
+  noiseScale: 0.2
+  noiseChunkOffset: {x: 1, y: 0}
+  widthScale: 256
+  heightScale: 256
   templateTerrain: {fileID: 15600000, guid: 88f91d9a0f0d2764d84ed736c73d9ef1, type: 2}
 --- !u!4 &1254785112
 Transform:
@@ -638,7 +639,7 @@ Transform:
   m_GameObject: {fileID: 1254785110}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -64, z: 0}
+  m_LocalPosition: {x: 0, y: -128, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

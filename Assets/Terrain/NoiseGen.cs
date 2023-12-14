@@ -16,4 +16,16 @@ public static class NoiseGen
         return finalValues;
     }
 
+    public static RenderTexture GetNoiseRT(Vector2Int tileCoords, ComputeShader noiseCS, int tileSize, int size, float scale){
+        RenderTextureDescriptor rtDescriptor = new RenderTextureDescriptor(size, size, RenderTextureFormat.ARGBFloat);
+        RenderTexture result = new RenderTexture(rtDescriptor);
+        result.enableRandomWrite = true;
+        noiseCS.SetFloat("_scale", scale);
+        noiseCS.SetInt("_size", tileSize);
+        noiseCS.SetInts("_tileCoords", tileCoords.x, tileCoords.y);
+        noiseCS.SetTexture(1,"_noiseTexture", result);
+        noiseCS.Dispatch(1, size/8, size/8, 1);
+        return result;
+    }
+
 }

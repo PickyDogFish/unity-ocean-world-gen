@@ -8,14 +8,18 @@ using UnityEngine;
 public class TerrainGen : MonoBehaviour
 {
     private ComputeShader noiseCS;
-    [SerializeField] private Transform cameraTransform;
-    [SerializeField] private int tileRange = 1;
+
 
     [Header("Overall settings")]
-    [SerializeField] private float noiseScale = 1;
+    [SerializeField] private Transform cameraTransform;
+    [SerializeField] public int tileRange = 1;
     [Range(0, 1)][SerializeField] private float percentUnderwater = 0.6f;
 
+    [Header("Noise settings")]
+    [SerializeField] private float noiseScale = 1;
+    
     [Header("Chunk settings")]
+    [SerializeField] private Vector2Int noiseChunkOffset = Vector2Int.zero; 
     [SerializeField] private int widthScale = 64;
     [SerializeField] private int heightScale = 64;
     private Vector3 size { get { return new Vector3(widthScale, heightScale, widthScale); } }
@@ -36,19 +40,16 @@ public class TerrainGen : MonoBehaviour
     private Dictionary<Vector2Int, Terrain> generatedTileDictionary = new Dictionary<Vector2Int, Terrain>();
     private Dictionary<Vector2Int, Terrain> shownTileDictionary = new Dictionary<Vector2Int, Terrain>();
 
-    void Awake()
-    {
-        InitializeTerrainGen();
-    }
-
     public void InitializeTerrainGen(){
         if (noiseCS == null){
             noiseCS = Resources.Load<ComputeShader>("NoiseGenerator");
         }
+        transform.position = new Vector3(0, -heightScale * percentUnderwater, 0);
     }
     void Start()
     {
-        transform.position = new Vector3(0, -heightScale * percentUnderwater, 0);
+        RemoveAllTerrain();
+        InitializeTerrainGen();
 
         foreach (Vector2Int chunkCoord in ChunkCoordsInRange(cameraTransform.position, tileRange))
         {
@@ -65,6 +66,9 @@ public class TerrainGen : MonoBehaviour
         }
     }
 
+    public RenderTexture PreviewNoise(){
+        return NoiseGen.GetNoiseRT(new Vector2Int(-tileRange, -tileRange) + noiseChunkOffset, noiseCS, heightmapResolution, (tileRange * 2 + 1) * (heightmapResolution-1), noiseScale);
+    }
 
     void Update()
     {
@@ -132,6 +136,7 @@ public class TerrainGen : MonoBehaviour
     public void AddTerrain(Vector2Int terrainCoords)
     {
         Terrain terrain = CreateTerrainTile(terrainCoords);
+        terrain.gameObject.hideFlags = HideFlags.HideInHierarchy;
         generatedTileDictionary.Add(terrainCoords, terrain);
         shownTileDictionary.Add(terrainCoords, terrain);
         Vector2Int neighbour = terrainCoords + new Vector2Int(-1, 0);
@@ -165,12 +170,12 @@ public class TerrainGen : MonoBehaviour
     }
 
     public void RemoveAllTerrain(){
-        foreach (Vector2Int terrainCoords in generatedTileDictionary.Keys){
-            shownTileDictionary.Remove(terrainCoords);
-            DestroyImmediate(GameObject.Find("Terrain" + terrainCoords.ToString()));
-
-        }
+        shownTileDictionary.Clear();
         generatedTileDictionary.Clear();
+        while (transform.childCount > 0){
+            DestroyImmediate(transform.GetChild(0).gameObject);
+        }
+
     }
 
     public Terrain CreateTerrainTile(Vector2Int terrainCoords)
@@ -183,6 +188,7 @@ public class TerrainGen : MonoBehaviour
         pos.Scale(size);
         newTerrainGO.transform.localPosition = pos;
 
+
         Terrain terrain = newTerrainGO.GetComponent<Terrain>();
         terrain.groupingID = 1;
         terrain.allowAutoConnect = false;
@@ -193,13 +199,11 @@ public class TerrainGen : MonoBehaviour
     {
         TerrainData terrainData = new TerrainData();
 
-        terrainData.size = new Vector3(widthScale,
-                                        heightScale,
-                                        widthScale);
+        terrainData.size = new Vector3(size.x/widthScale*32, size.y, size.z/widthScale*32);
 
         terrainData.baseMapResolution = baseTextureResolution;
         terrainData.heightmapResolution = heightmapResolution;
-        float[,] heights = NoiseGen.GetNoiseArray(tileCoords, noiseCS, heightmapResolution, noiseScale);
+        float[,] heights = NoiseGen.GetNoiseArray(tileCoords + noiseChunkOffset, noiseCS, heightmapResolution, noiseScale);
         terrainData.SetHeights(0, 0, heights);
 
         terrainData.alphamapResolution = alphamapResolution;
