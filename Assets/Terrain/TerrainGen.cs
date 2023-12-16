@@ -199,32 +199,35 @@ public class TerrainGen : MonoBehaviour
     {
         TerrainData terrainData = new TerrainData();
 
+        terrainData.name = name + tileCoords.ToString();
         terrainData.size = new Vector3(size.x/widthScale*32, size.y, size.z/widthScale*32);
 
         terrainData.baseMapResolution = baseTextureResolution;
         terrainData.heightmapResolution = heightmapResolution;
-        float[,] heights = NoiseGen.GetNoiseArray(tileCoords + noiseChunkOffset, noiseCS, heightmapResolution, noiseScale);
-        RenderTexture rt = NoiseGen.GetNoiseRT(tileCoords + noiseChunkOffset, noiseCS, heightmapResolution, heightmapResolution, noiseScale);
-        Graphics.SetRenderTarget(rt);
+        //float[,] heights = NoiseGen.GetNoiseArray(tileCoords + noiseChunkOffset, noiseCS, heightmapResolution, noiseScale);
+        //RenderTexture rt = NoiseGen.GetNoiseRT(tileCoords + noiseChunkOffset, noiseCS, heightmapResolution, heightmapResolution, noiseScale);
+        NoiseGen.TerrainGenData terrainGenData = NoiseGen.GetTerrainRT(tileCoords + noiseChunkOffset, noiseCS, heightmapResolution, heightmapResolution, noiseScale);
+        Graphics.SetRenderTarget(terrainGenData.heightMap);
         terrainData.CopyActiveRenderTextureToHeightmap(new RectInt(0,0, heightmapResolution, heightmapResolution), Vector2Int.zero, TerrainHeightmapSyncControl.HeightAndLod);
         //terrainData.SetHeights(0, 0, heights);
 
         terrainData.alphamapResolution = alphamapResolution;
         terrainData.SetDetailResolution(detailResolution, detailResolutionPerPatch);
 
-        terrainData.name = name + tileCoords.ToString();
         terrainData.terrainLayers = templateTerrain.terrainLayers;
-        terrainData.SetAlphamaps(0, 0, CreateTextureAlphaMap(terrainData, heights));
+        Graphics.SetRenderTarget(terrainGenData.splatMap);
+        terrainData.CopyActiveRenderTextureToTexture(TerrainData.AlphamapTextureName, 0, new RectInt(0, 0, terrainData.alphamapResolution, terrainData.alphamapResolution), Vector2Int.zero, false);
+        //terrainData.SetAlphamaps(0, 0, CreateTextureAlphaMap(terrainData, heights));
 
 
         terrainData.detailPrototypes = templateTerrain.detailPrototypes;
         terrainData.SetDetailScatterMode(DetailScatterMode.CoverageMode);
         int[,] detailMap = terrainData.GetDetailLayer(0, 0, terrainData.detailWidth, terrainData.detailHeight, 0);
-        detailMap = CreateDetailAlphaMap(detailMap, heights);
-        terrainData.SetDetailLayer(0, 0, 0, detailMap);
-        terrainData.SetDetailLayer(0, 0, 1, detailMap);
-        terrainData.SetDetailLayer(0, 0, 2, detailMap);
-        terrainData.SetDetailLayer(0, 0, 3, detailMap);
+        //detailMap = CreateDetailAlphaMap(detailMap, heights);
+        //terrainData.SetDetailLayer(0, 0, 0, detailMap);
+        //terrainData.SetDetailLayer(0, 0, 1, detailMap);
+        //terrainData.SetDetailLayer(0, 0, 2, detailMap);
+        //terrainData.SetDetailLayer(0, 0, 3, detailMap);
         return terrainData;
     }
 
@@ -239,7 +242,7 @@ public class TerrainGen : MonoBehaviour
                 float height = WorldSpaceHeight(heights[x, y]);
                 if (height > 0)
                 {
-                    detailMap[x, y] = 500;
+                    detailMap[x, y] = 0;
                 }
             }
         }
@@ -249,7 +252,7 @@ public class TerrainGen : MonoBehaviour
     private float[,,] CreateTextureAlphaMap(TerrainData terrainData, float[,] heights)
     {
 
-        float[,,] map = new float[terrainData.alphamapWidth, terrainData.alphamapHeight, 3];
+        float[,,] map = new float[terrainData.alphamapWidth, terrainData.alphamapHeight, 4];
 
         // For each point on the alphamap...
         for (int y = 0; y < terrainData.alphamapHeight; y++)

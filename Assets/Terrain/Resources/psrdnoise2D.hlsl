@@ -77,6 +77,11 @@ float3 mod289(float3 x)
     return x-floor(x*(1./289.))*289.;
 }
 
+float2 mod289(float2 x)
+{
+    return x - floor(x / 289.0) * 289.0;
+}
+
 float3 permute(float3 x)
 {
     return mod289((x*34.+10.)*x);
@@ -303,7 +308,7 @@ float snoise(float2 pos)
 
 float3 sdnoise01(float2 pos){
     float3 nd = sdnoise(pos);
-    return  nd;
+    return nd * 0.5 + 0.5;
 }
 
 

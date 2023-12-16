@@ -1,6 +1,7 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 #pragma kernel NoiseTexture
+#pragma kernel TerrainData
 
 #include "psrdnoise2d.hlsl" //https://github.com/stegu/webgl-noise converted to hlsl
 
@@ -106,20 +107,20 @@ float3 fbm(float2 x, uint octaves)
 
     for(uint i=0; i < octaves; i++ )
     {
-        n = sdnoise01((x+n.xx/(10.0 * ((i*2)+1))) * freq);
-        derivatives += n.yz;      // accumulate derivatives
-        valueSum += amplitude * n.x / (1.0+ dot(derivatives,derivatives)/4);          // accumulate values
+        n = sdnoise((x+n.xx/(10.0 * ((i*2)+1))) * freq);
+        derivatives += amplitude * n.yz;      // accumulate derivatives
+        valueSum += amplitude * n.x / (1.0+ dot(derivatives,derivatives));          // accumulate values
         amplitude *= 0.55;
         //x = freq * mul(factorMat2,x) + n.yz;
         freq *= 1.9;
     }
-    return float3( valueSum *0.5 + 0.5, derivatives );
+    return float3( valueSum *0.5 + 0.5, derivatives);
 }
 
 float3 getNoiseWrapper(int2 coords){
     float2 floatCoords = coords.xy/(float)_size * _scale;
     //return MorphedFBMNoise(floatCoords, 1.5, 4);
-    return fbm(floatCoords, 16);
+    return fbm(floatCoords, 8);
     //return getMorphedValueNoise(coords);
 }
 
@@ -151,6 +152,11 @@ void NoiseTexture(uint3 id : SV_DispatchThreadID)
     int2 coords = _tileCoords * (_size-1) + id.xy;
     float3 noise = getNoiseWrapper(coords);
     noise.x = noise.x/2;
+    //TESTING
+    //float steepness = length(noise.yz)/5;
+    //float steepness = (sqrt(noise.y * noise.y + noise.z * noise.z));
+    //noise.y = steepness;
+    //END TESTING
     _noiseTexture[id.xy] = float4(noise,1);
     if (id.x == _size-2){
         float3 noise = getNoiseWrapper(coords.xy + int2(1,0));
@@ -166,6 +172,49 @@ void NoiseTexture(uint3 id : SV_DispatchThreadID)
         float3 noise = getNoiseWrapper(coords.xy + int2(1,1));
         noise.x = noise.x/2;
         _noiseTexture[id.xy + uint2(1,1)] = float4(noise,1);
+    }
+}
+
+
+
+
+
+RWTexture2D<float4> _heightMap;
+RWTexture2D<float4> _splatMap;
+
+float4 CalculateSplatMap(float3 noise){
+    float steepness = saturate(length(float2(-noise.y, noise.z)));// abs(noise.z);//sqrt(noise.y * noise.y + noise.z * noise.z);
+    if (noise.x < 0.5){
+        return float4(0,0,0,1);
+    } else if (noise.x < 0.75){
+        return float4(0,1-steepness,steepness,0);    
+    } else {
+        return float4(1-steepness,steepness,0,0);    
+    }
+}
+
+void SetTerrainDataAt(uint2 id){
+    int2 coords = _tileCoords * (_size-1) + id.xy;
+    float3 noise = getNoiseWrapper(coords);
+    _splatMap[id] = CalculateSplatMap(noise);
+    
+    noise.x = noise.x/2; //when setting the heightmap for terrain directly, it seems to expect range from 0-0.5;
+
+    _heightMap[id] = float4(noise,1);
+}
+
+[numthreads(8,8,1)]
+void TerrainData(uint3 id : SV_DispatchThreadID)
+{
+    SetTerrainDataAt(id.xy);
+    if (id.x == _size-2){
+        SetTerrainDataAt(id.xy + uint2(1,0));
+    }
+    if (id.y == _size-2){
+        SetTerrainDataAt(id.xy + uint2(0,1));
+    }
+    if (id.y == _size-2 && id.x == _size-2){
+        SetTerrainDataAt(id.xy + uint2(1,1));
     }
 }
 
