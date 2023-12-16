@@ -150,7 +150,23 @@ void NoiseTexture(uint3 id : SV_DispatchThreadID)
 {
     int2 coords = _tileCoords * (_size-1) + id.xy;
     float3 noise = getNoiseWrapper(coords);
+    noise.x = noise.x/2;
     _noiseTexture[id.xy] = float4(noise,1);
+    if (id.x == _size-2){
+        float3 noise = getNoiseWrapper(coords.xy + int2(1,0));
+        noise.x = noise.x/2;
+        _noiseTexture[id.xy + uint2(1,0)] = float4(noise,1);
+    }
+    if (id.y == _size-2){
+        float3 noise = getNoiseWrapper(coords.xy + int2(0,1));
+        noise.x = noise.x/2;
+        _noiseTexture[id.xy + uint2(0,1)] = float4(noise,1);
+    }
+    if (id.y == _size-2 && id.x == _size-2){
+        float3 noise = getNoiseWrapper(coords.xy + int2(1,1));
+        noise.x = noise.x/2;
+        _noiseTexture[id.xy + uint2(1,1)] = float4(noise,1);
+    }
 }
 
 

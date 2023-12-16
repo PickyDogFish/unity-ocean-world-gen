@@ -204,7 +204,10 @@ public class TerrainGen : MonoBehaviour
         terrainData.baseMapResolution = baseTextureResolution;
         terrainData.heightmapResolution = heightmapResolution;
         float[,] heights = NoiseGen.GetNoiseArray(tileCoords + noiseChunkOffset, noiseCS, heightmapResolution, noiseScale);
-        terrainData.SetHeights(0, 0, heights);
+        RenderTexture rt = NoiseGen.GetNoiseRT(tileCoords + noiseChunkOffset, noiseCS, heightmapResolution, heightmapResolution, noiseScale);
+        Graphics.SetRenderTarget(rt);
+        terrainData.CopyActiveRenderTextureToHeightmap(new RectInt(0,0, heightmapResolution, heightmapResolution), Vector2Int.zero, TerrainHeightmapSyncControl.HeightAndLod);
+        //terrainData.SetHeights(0, 0, heights);
 
         terrainData.alphamapResolution = alphamapResolution;
         terrainData.SetDetailResolution(detailResolution, detailResolutionPerPatch);
