@@ -49,7 +49,7 @@ Shader "Ocean/SunShafts"
                 float4 positionVS = mul(Ocean_InverseProjectionMatrix, positionCS);
                 positionVS = positionVS / positionVS.w;
                 float4 positionWS = mul(UNITY_MATRIX_I_V, positionVS);
-                return SampleHeight(positionWS.xz, Ocean_WaveScale);
+                return SampleHeight(positionWS.xz);
             }
 
             float random01( float2 p )

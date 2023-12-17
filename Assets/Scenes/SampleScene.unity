@@ -504,7 +504,7 @@ MonoBehaviour:
   repeatTime: 200
   speed: 0.1
   lengthScale: 8
-  waveScale: 100
+  waveScale: 10
   material: {fileID: 2100000, guid: 7ad6da068747ed349b3e62eab558ffc5, type: 2}
   FFTCS: {fileID: 7200000, guid: 2f3c6f07349575e49b3c3560719b40ef, type: 3}
   FFTSize: 128
@@ -515,7 +515,7 @@ MonoBehaviour:
   refractionIntensity: 0.02
   playerTransform: {fileID: 1271878029}
   clipMapLevels: 4
-  clipMapVertexDensity: 16
+  clipMapVertexDensity: 64
 --- !u!4 &1023640315
 Transform:
   m_ObjectHideFlags: 0
@@ -692,7 +692,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   actions: {fileID: -944628639613478452, guid: 9d0155f987f010046b17a95e6121b354, type: 3}
-  walkSpeed: 100
+  walkSpeed: 10
 --- !u!114 &1271878031
 MonoBehaviour:
   m_ObjectHideFlags: 0

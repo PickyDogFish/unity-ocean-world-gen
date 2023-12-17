@@ -34,8 +34,8 @@ Shader "Ocean/UnderwaterEffect"
                 float4 positionVS = mul(Ocean_InverseProjectionMatrix, positionCS);
                 positionVS = positionVS / positionVS.w;
                 float4 positionWS = mul(UNITY_MATRIX_I_V, positionVS);
-                float waterHeight = SampleHeight(positionWS.xz, Ocean_WaveScale);//ShoreModulation(SampleShore(pos.xz).r));
-                return positionWS.y - waterHeight + 0.5;
+                float waterHeight = SampleHeight(positionWS.xz);
+                return positionWS.y - waterHeight + 0.53;
             }
 
             ENDHLSL

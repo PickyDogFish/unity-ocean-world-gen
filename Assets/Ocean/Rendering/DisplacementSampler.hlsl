@@ -1,14 +1,21 @@
 
 
-float SampleHeight(float2 worldUV, float waveScale)
+float3 SampleDisplacement(float2 worldUV){
+    float3 displacement = _OceanDisplacementTex.SampleLevel(sampler_OceanDisplacementTex, worldUV/Ocean_WaveScale, 0.0f)* (Ocean_WaveScale/100);
+    return displacement.yxz;
+}
+
+float SampleHeight(float2 worldUV)
 {
-    float4 displacement = _OceanDisplacementTex.SampleLevel(sampler_OceanDisplacementTex, worldUV/waveScale, 0.0f);
-    displacement = _OceanDisplacementTex.SampleLevel(sampler_OceanDisplacementTex, (worldUV - displacement.yz)/waveScale, 0.0f);
-    displacement = _OceanDisplacementTex.SampleLevel(sampler_OceanDisplacementTex, (worldUV - displacement.yz)/waveScale, 0.0f);
-    displacement = _OceanDisplacementTex.SampleLevel(sampler_OceanDisplacementTex, (worldUV - displacement.yz)/waveScale, 0.0f);
-    return displacement.x;
+    //worldUV /= Ocean_WaveScale;
+    float3 displacement = SampleDisplacement(worldUV);//_OceanDisplacementTex.SampleLevel(sampler_OceanDisplacementTex, worldUV, 0.0f)* (Ocean_WaveScale/100);
+    //_OceanDisplacementTex.SampleLevel(sampler_OceanDisplacementTex, (worldUV - displacement.xz), 0.0f)* (Ocean_WaveScale/100);
+    displacement = SampleDisplacement(worldUV-displacement.xz);
+    displacement = SampleDisplacement(worldUV-displacement.xz);
+    displacement = SampleDisplacement(worldUV-displacement.xz);
+    return displacement.y;
 }
 
 float3 SampleNormal(float2 worldUV){
-    return _OceanNormalTex.SampleLevel(sampler_OceanNormalTex, worldUV / Ocean_WaveScale, 0.0f).xyz;
+    return _OceanNormalTex.SampleLevel(sampler_OceanNormalTex, worldUV / Ocean_WaveScale, 0.0f);
 }

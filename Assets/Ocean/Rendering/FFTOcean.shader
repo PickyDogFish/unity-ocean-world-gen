@@ -51,13 +51,11 @@ Shader "Custom/FFTOcean"
             v2f vert(Attributes input){
                 v2f output;
 
-                output.positionWS = ClipMapVertex(input.position);//TransformObjectToWorld(input.position);
-                float3 normal = _OceanNormalTex.SampleLevel(sampler_OceanNormalTex, output.positionWS.xz / Ocean_WaveScale, 0.0f);
+                output.positionWS = ClipMapVertex(input.position * Ocean_WaveScale/100);//TransformObjectToWorld(input.position);
+                float3 normal = SampleNormal(output.positionWS.xz);//_OceanNormalTex.SampleLevel(sampler_OceanNormalTex, output.positionWS.xz / Ocean_WaveScale, 0.0f);
                 output.normalWS = normal;
                 
-                float3 displacement = _OceanDisplacementTex.SampleLevel(sampler_OceanDisplacementTex, output.positionWS.xz/Ocean_WaveScale, 0.0f);
-                
-                output.positionWS += displacement.yxz;
+                output.positionWS += SampleDisplacement(output.positionWS.xz);
                 
                 float3 positionOS = TransformWorldToObject(output.positionWS);
                 output.positionHCS = TransformObjectToHClip(positionOS);
