@@ -33,7 +33,7 @@ public class TerrainGen : MonoBehaviour
     private int detailResolution { get { return widthScale; } }
     private int detailResolutionPerPatch = 8;
     private int alphamapResolution { get { return widthScale + 1; } }
-    private int baseTextureResolution { get { return widthScale / 2; } }
+    private int baseTextureResolution { get { return widthScale/2; } }
 
 
 

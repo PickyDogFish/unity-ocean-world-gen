@@ -360,43 +360,57 @@ float unity_noise_interpolate (float a, float b, float t)
     return (1.0-t)*a + (t*b);
 }
 
-float unity_valueNoise (float2 uv)
-{
+float2 smoothstep(float2 uv){
+    return uv * uv * (3.0 - 2.0 * uv);
+}
+
+float2 betterSmooth(float2 uv){
+    return uv*uv*uv*(10.0 + uv * (-15.0 + 6*uv));
+}
+
+float2 betterSmoothDerivative(float2 uv){
+    return 30 *uv*uv*(1 + uv*(-2 + uv));
+}
+
+float3 myValueNoise(float2 uv){
     float2 i = floor(uv);
     float2 f = frac(uv);
-    f = f * f * (3.0 - 2.0 * f);
-
-    uv = abs(frac(uv) - 0.5);
+    f = betterSmooth(f);
+    float2 df = betterSmoothDerivative(f);
+    //get the locations of the nearby "pixels"
     float2 c0 = i + float2(0.0, 0.0);
     float2 c1 = i + float2(1.0, 0.0);
     float2 c2 = i + float2(0.0, 1.0);
     float2 c3 = i + float2(1.0, 1.0);
-    float r0 = unity_noise_randomValue(c0);
-    float r1 = unity_noise_randomValue(c1);
-    float r2 = unity_noise_randomValue(c2);
-    float r3 = unity_noise_randomValue(c3);
+    //get the random noise at "pixel" locations
+    float a = unity_noise_randomValue(c0);
+    float b = unity_noise_randomValue(c1);
+    float c = unity_noise_randomValue(c2);
+    float d = unity_noise_randomValue(c3);
 
-    float bottomOfGrid = unity_noise_interpolate(r0, r1, f.x);
-    float topOfGrid = unity_noise_interpolate(r2, r3, f.x);
-    float t = unity_noise_interpolate(bottomOfGrid, topOfGrid, f.y);
-    return t;
+    float k1 = b-a;
+    float k2 = c-a;
+    float k3 = a-b-c+d;
+
+    float3 noiseAndDerivatives = 0.0;
+    noiseAndDerivatives.x = (a + f.x * k1 + f.y * k2 + f.x * f.y * k3);
+    noiseAndDerivatives.y = ((k1 + f.y * k3) * df.x);// /1.875; //so its between 0 and 1;
+    noiseAndDerivatives.z = ((k2 + f.x * k3) * df.y);///1.875;
+    return noiseAndDerivatives;
 }
 
-float Unity_SimpleNoise_float(float2 UV)
-{
-    float t = 0.0;
-
-    float freq = pow(2.0, float(0));
-    float amp = pow(0.5, float(3-0));
-    t += unity_valueNoise(float2(UV.x/freq, UV.y/freq))*amp;
-
-    freq = pow(2.0, float(1));
-    amp = pow(0.5, float(3-1));
-    t += unity_valueNoise(float2(UV.x/freq, UV.y/freq))*amp;
-
-    freq = pow(2.0, float(2));
-    amp = pow(0.5, float(3-2));
-    t += unity_valueNoise(float2(UV.x/freq, UV.y/freq))*amp;
-
-    return t;
+float3 myFbmValueNoise(float2 uv, uint numOctaves){
+    float valueSum = 0;
+    float2 derivativeSum = 0;
+    float amplitude = 0.6;
+    float frequency = 1; 
+    float3 noise = myValueNoise(uv);
+    for (uint i = 0; i < numOctaves; i++){
+        noise = myValueNoise(uv * frequency + noise.xx);
+        valueSum += (noise.x-0.5) * amplitude  / (1.0 + 2 * dot(derivativeSum,derivativeSum));
+        derivativeSum += noise.yz * amplitude / (1.0 + 2* dot(derivativeSum,derivativeSum));
+        frequency *= 2.01;
+        amplitude *= 0.49;
+    }
+    return float3(valueSum+0.6, derivativeSum);
 }
