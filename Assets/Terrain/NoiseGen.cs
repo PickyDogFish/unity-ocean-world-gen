@@ -32,7 +32,7 @@ public static class NoiseGen
         return result;
     }
 
-    public static TerrainGenData GetTerrainRT(Vector2Int tileCoords, ComputeShader noiseCS, int tileSize, int size, float scale){
+    public static TerrainGenData GetTerrainRT(Vector2Int tileCoords, ComputeShader noiseCS, int tileSize, int size, float scale, float percentUnderwater){
         RenderTextureDescriptor rtDescriptor = new RenderTextureDescriptor(size, size, RenderTextureFormat.ARGBFloat);
         RenderTexture heightMap = new RenderTexture(rtDescriptor);
         RenderTexture splatMap = new RenderTexture(rtDescriptor);
@@ -42,9 +42,12 @@ public static class NoiseGen
         noiseCS.SetInt("_size", tileSize);
         noiseCS.SetInts("_tileCoords", tileCoords.x, tileCoords.y);
         noiseCS.SetTexture(2,"_heightMap", heightMap);
-        noiseCS.SetTexture(2,"_splatMap", splatMap);
         noiseCS.Dispatch(2, size/8, size/8, 1);
 
+        noiseCS.SetFloat("_percentUnderwater", percentUnderwater);
+        noiseCS.SetTexture(3,"_heightMap", heightMap);
+        noiseCS.SetTexture(3,"_splatMap", splatMap);
+        noiseCS.Dispatch(3, size/8, size/8, 1);   
         //Packing data into a struct
         TerrainGenData resultingData = new TerrainGenData();
         resultingData.heightMap = heightMap;
