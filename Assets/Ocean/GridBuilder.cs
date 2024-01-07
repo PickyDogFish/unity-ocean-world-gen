@@ -29,6 +29,7 @@ public class GridBuilder : MonoBehaviour
         }
 
         mesh.CombineMeshes(combine, true);
+        mesh.RecalculateBounds();
         return mesh;
     }
 
