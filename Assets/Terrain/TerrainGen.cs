@@ -222,7 +222,7 @@ public class TerrainGen : MonoBehaviour
 
         terrainData.detailPrototypes = templateTerrain.detailPrototypes;
         terrainData.SetDetailScatterMode(DetailScatterMode.CoverageMode);
-        int[,] detailMap = terrainData.GetDetailLayer(0, 0, terrainData.detailWidth, terrainData.detailHeight, 0);
+        //int[,] detailMap = terrainData.GetDetailLayer(0, 0, terrainData.detailWidth, terrainData.detailHeight, 0);
         //detailMap = CreateDetailAlphaMap(detailMap, heights);
         //terrainData.SetDetailLayer(0, 0, 0, detailMap);
         //terrainData.SetDetailLayer(0, 0, 1, detailMap);
