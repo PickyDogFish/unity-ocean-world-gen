@@ -459,10 +459,10 @@ float3 selfMorphedFbmValueNoise(float2 uv, uint numOctaves){
 }
 
 
-float3 myMorphedFbmNoise(float2 uv){
+float3 myMorphedFbmNoise(float2 uv, int octaves){
     float3 morphNoise = myFbmValueNoise(uv.yx,3)*0.5;
     //float3 noise1 = myFbmValueNoise(uv+morphNoise.yz, 16);
-    float3 noise1 = selfMorphedFbmValueNoise(uv, 12);
+    float3 noise1 = selfMorphedFbmValueNoise(uv, octaves);
     return noise1;
 }
 

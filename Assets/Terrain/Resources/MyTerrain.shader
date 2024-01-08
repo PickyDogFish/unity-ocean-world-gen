@@ -33,9 +33,9 @@ Shader "Custom/Terrain"
         float _scale;
         float _verticalOffset;
 
-        float3 getNoise(float2 pos){
-            return myValueNoise(pos/_scale);
-            //return myMorphedFbmNoise(pos/_scale);
+        float3 getNoise(float2 pos, int octaves){
+            //return myValueNoise(pos/_scale);
+            return myMorphedFbmNoise(pos/_scale, octaves);
         }
 
         ENDHLSL
@@ -48,14 +48,18 @@ Shader "Custom/Terrain"
             // The HLSL code block. Unity SRP uses the HLSL language.
             HLSLPROGRAM
 
+            #include "ColorSpaceConversion.hlsl"
 
             // This line defines the name of the vertex shader.
             #pragma vertex vert
             // This line defines the name of the fragment shader.
             #pragma fragment frag
 
+            int _normalNoiseOctaves;
+            float _percentUnderwater;
 
-            float _Displacement;
+            TEXTURE2D_ARRAY(_groundTextures);
+            SAMPLER(sampler_groundTextures);
 
             struct Attributes{
                 float3 position : POSITION;
@@ -67,23 +71,36 @@ Shader "Custom/Terrain"
                 float3 normalWS : TEXCOORD2;
             };
 
-            float3 CalcNormal(float2 id, float noise){
 
+
+
+            float3 CalcNormal2s(float2 id, float noise){
                 // read neighbor heights using small offset
-                float2 off = float2(0.001, 0);
-                float hR = getNoise(id + off.xy).x;
-
-                float hU = getNoise(id + off.yx).x;
-                
-
+                float2 off = float2(0.01, 0);
+                float hR = getNoise(id + off.xy, _normalNoiseOctaves).x;
+                float hU = getNoise(id + off.yx, _normalNoiseOctaves).x;
                 // deduce terrain normal
                 float3 N;
                 N.x = noise - hR;
-                N.y = 0.00001;
+                N.y = 0.00005;
                 N.z = noise - hU;
                 return normalize(N);
             }
 
+            float3 CalcNormal4s(float2 id){
+                // read neighbor heights using small offset
+                float2 off = float2(0.0001, 0);
+                float hR = getNoise(id + off.xy, _normalNoiseOctaves).x;
+                float hL = getNoise(id - off.xy, _normalNoiseOctaves).x;
+                float hU = getNoise(id + off.yx, _normalNoiseOctaves).x;
+                float hD = getNoise(id - off.yx, _normalNoiseOctaves).x;
+                // deduce terrain normal
+                float3 N; 
+                N.x = hL-hR;
+                N.y = 0.000001;
+                N.z = hD-hU;
+                return normalize(N);
+            }
 
             float3 ClipMapVertex(float3 positionOS){
                 float tileSize = 1; 
@@ -95,26 +112,56 @@ Shader "Custom/Terrain"
             v2f vert(Attributes IN){
                 v2f output;
                 output.positionWS = ClipMapVertex(IN.position);//TransformObjectToWorld(IN.position);
-                float3 noise = getNoise(output.positionWS.xz);
+                float3 noise = getNoise(output.positionWS.xz, 10);
                 output.positionWS.y += noise.x * _displacement * _scale + _verticalOffset * _scale;
                 output.positionHCS = TransformWorldToHClip(output.positionWS);
                 //float2 normalX = normalize(float2(noise.y, 1));
                 //float2 normalZ = normalize(float2(noise.z, 1));
                 //output.normalWS = cross(float3(normalX,0), float3(normalZ,0).zyx);//normalize(float3(-1/(noise.y+0.0001), 1, -1/noise.z));
-                output.normalWS = CalcNormal(output.positionWS.xz, noise.x);
+                output.normalWS = CalcNormal4s(output.positionWS.xz);
                 return output;
+            }
+
+            float4 sumOne(float4 input){
+                return input / (input.x + input.y + input.z + input.w);
+            }
+
+            float4 splatData(float3 normal, float height){
+                float steepness = betterSmooth(normal.y);
+                float sandMask = saturate(-(height-_percentUnderwater/2 - 0.002)*1000) * steepness*2;
+                float grassMask = saturate((height-_percentUnderwater/2 - 0.002)*1000) * steepness*2;
+                float rockMask = 1-steepness;
+                float snowMask = saturate((height - 0.45)*100) * steepness; 
+                float4 map =  float4(sandMask, grassMask, rockMask, snowMask); 
+                return sumOne(map);
+            }
+
+            float4 colorFromNormal(float3 normal, float3 posWS){
+                float4 splatValues = splatData(normal, posWS.y);
+                float4 albedo = 0;
+                float maxSplat = max(splatValues.x, splatValues.y);
+                maxSplat = max(maxSplat, splatValues.z);
+                maxSplat = max(maxSplat, splatValues.w);
+                for (uint i = 0; i < 4; i++){
+                    if (splatValues[i] == maxSplat){
+                        albedo = SAMPLE_TEXTURE2D_ARRAY(_groundTextures, sampler_groundTextures, posWS.xz, i);
+                    }
+                }
+                albedo.w = 0;
+                return albedo;
             }
 
             half4 frag(v2f IN) : SV_TARGET{
                 //initializes to all 0
                 InputData lightingData = (InputData)0;
-                lightingData.normalWS = float3(0,1,0);//NormalizeNormalPerPixel(IN.normalWS);
+                lightingData.normalWS = IN.normalWS;//CalcNormal4s(IN.positionWS.xz);//float3(0,1,0)
+                //lightingData.normalWS = float3(0,1,0);
                 lightingData.positionWS = IN.positionWS;
                 lightingData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
                 lightingData.shadowCoord = TransformWorldToShadowCoord(IN.positionWS);
 
                 SurfaceData surfaceInput = (SurfaceData)0;
-                surfaceInput.albedo = abs(normalize(IN.normalWS));
+                surfaceInput.albedo = colorFromNormal(lightingData.normalWS, IN.positionWS);//lightingData.normalWS;
                 surfaceInput.alpha = 0;
                 surfaceInput.specular = 0.5;
                 surfaceInput.smoothness = 0.1;
@@ -173,7 +220,7 @@ Shader "Custom/Terrain"
             float4 GetShadowPositionHClip(Attributes input)
             {
                 float3 positionWS = ClipMapVertex(input.positionOS);
-                float3 noise = getNoise(positionWS);
+                float3 noise = getNoise(positionWS, 10);
                 positionWS.y += noise.x * _displacement * _scale + _verticalOffset * _scale;
                 float3 normalWS = normalize(float3(abs(noise.y), 1, abs(noise.z)));
 

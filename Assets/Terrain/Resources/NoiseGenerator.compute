@@ -124,7 +124,7 @@ float3 getNoiseWrapper(int2 coords){
     //return MorphedFBMNoise(floatCoords, 1.5, 4);
     //return fbm(floatCoords, 8);
     //return myFbmValueNoise(floatCoords * 5, 8);
-    return myMorphedFbmNoise(floatCoords*5);
+    return myMorphedFbmNoise(floatCoords*5, 12);
     //return getMorphedValueNoise(coords);
     //return myValueNoise(floatCoords.xy * 20);
 }

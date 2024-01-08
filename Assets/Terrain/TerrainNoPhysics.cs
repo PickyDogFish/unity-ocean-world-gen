@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
@@ -16,7 +13,14 @@ public class TerrainNoPhysics : MonoBehaviour
     [SerializeField] private float scale = 100;
     [SerializeField] private float verticalOffset = -0.5f;
 
-    
+    //Number of noise octaves that are included in normal calculation 
+    [SerializeField] private int normalOctaves = 6;
+
+    [SerializeField] private Texture2D sand;
+    [SerializeField] private Texture2D grass;
+    [SerializeField] private Texture2D rock;
+    [SerializeField] private Texture2D snow;
+    private Texture2DArray groundTextures;
     
     
     private Material rendererMaterial;
@@ -24,9 +28,17 @@ public class TerrainNoPhysics : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        GetComponent<MeshFilter>().sharedMesh = GridBuilder.BuildClipMap(32, 3);
+        GetComponent<MeshFilter>().sharedMesh = GridBuilder.BuildClipMap(64, 4);
         GetComponent<MeshFilter>().sharedMesh.name = "terrain_clipmap";
         GetComponent<MeshRenderer>().material = terrainMaterial;
+        groundTextures = new Texture2DArray(512,512,4, TextureFormat.RGBA32, false);
+        groundTextures.wrapMode = TextureWrapMode.Repeat;
+        groundTextures.filterMode = FilterMode.Trilinear;
+        groundTextures.SetPixels(sand.GetPixels(), 0);
+        groundTextures.SetPixels(grass.GetPixels(), 1);
+        groundTextures.SetPixels(rock.GetPixels(), 2);
+        groundTextures.SetPixels(snow.GetPixels(), 3);
+        groundTextures.Apply();
     }
 
     void SetMaterialParameters(){
@@ -34,6 +46,9 @@ public class TerrainNoPhysics : MonoBehaviour
         terrainMaterial.SetFloat("_displacement", displacement);
         terrainMaterial.SetFloat("_scale", scale);
         terrainMaterial.SetFloat("_verticalOffset", verticalOffset);
+        terrainMaterial.SetFloat("_percentUnderwater", Mathf.Abs(verticalOffset));
+        terrainMaterial.SetTexture("_groundTextures", groundTextures);
+        terrainMaterial.SetFloat("_normalNoiseOctaves", normalOctaves);
     }
 
     // Update is called once per frame
