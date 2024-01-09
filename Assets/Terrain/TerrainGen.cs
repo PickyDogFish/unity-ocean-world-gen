@@ -204,7 +204,7 @@ public class TerrainGen : MonoBehaviour
 
         terrainData.baseMapResolution = baseTextureResolution;
         terrainData.heightmapResolution = heightmapResolution;
-        //float[,] heights = NoiseGen.GetNoiseArray(tileCoords + noiseChunkOffset, noiseCS, heightmapResolution, noiseScale);
+        float[,] heights = NoiseGen.GetNoiseArray(tileCoords + noiseChunkOffset, noiseCS, heightmapResolution, noiseScale);
         //RenderTexture rt = NoiseGen.GetNoiseRT(tileCoords + noiseChunkOffset, noiseCS, heightmapResolution, heightmapResolution, noiseScale);
         NoiseGen.TerrainGenData terrainGenData = NoiseGen.GetTerrainRT(tileCoords + noiseChunkOffset, noiseCS, heightmapResolution, heightmapResolution, noiseScale, percentUnderwater);
         Graphics.SetRenderTarget(terrainGenData.heightMap);
@@ -222,12 +222,12 @@ public class TerrainGen : MonoBehaviour
 
         terrainData.detailPrototypes = templateTerrain.detailPrototypes;
         terrainData.SetDetailScatterMode(DetailScatterMode.CoverageMode);
-        //int[,] detailMap = terrainData.GetDetailLayer(0, 0, terrainData.detailWidth, terrainData.detailHeight, 0);
-        //detailMap = CreateDetailAlphaMap(detailMap, heights);
-        //terrainData.SetDetailLayer(0, 0, 0, detailMap);
-        //terrainData.SetDetailLayer(0, 0, 1, detailMap);
-        //terrainData.SetDetailLayer(0, 0, 2, detailMap);
-        //terrainData.SetDetailLayer(0, 0, 3, detailMap);
+        int[,] detailMap = terrainData.GetDetailLayer(0, 0, terrainData.detailWidth, terrainData.detailHeight, 0);
+        detailMap = CreateDetailAlphaMap(detailMap, heights);
+        terrainData.SetDetailLayer(0, 0, 0, detailMap);
+        terrainData.SetDetailLayer(0, 0, 1, detailMap);
+        terrainData.SetDetailLayer(0, 0, 2, detailMap);
+        terrainData.SetDetailLayer(0, 0, 3, detailMap);
         return terrainData;
     }
 

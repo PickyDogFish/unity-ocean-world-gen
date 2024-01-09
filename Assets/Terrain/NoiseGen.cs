@@ -38,16 +38,21 @@ public static class NoiseGen
         RenderTexture splatMap = new RenderTexture(rtDescriptor);
         heightMap.enableRandomWrite = true;
         splatMap.enableRandomWrite = true;
+        
+        //heightmap kernel
         noiseCS.SetFloat("_scale", scale);
         noiseCS.SetInt("_size", tileSize);
         noiseCS.SetInts("_tileCoords", tileCoords.x, tileCoords.y);
         noiseCS.SetTexture(2,"_heightMap", heightMap);
         noiseCS.Dispatch(2, size/8, size/8, 1);
 
+        //splattexture kernel
         noiseCS.SetFloat("_percentUnderwater", percentUnderwater);
         noiseCS.SetTexture(3,"_heightMap", heightMap);
         noiseCS.SetTexture(3,"_splatMap", splatMap);
         noiseCS.Dispatch(3, size/8, size/8, 1);   
+
+        
         //Packing data into a struct
         TerrainGenData resultingData = new TerrainGenData();
         resultingData.heightMap = heightMap;
@@ -55,5 +60,6 @@ public static class NoiseGen
 
         return resultingData;
     }
+
 
 }
