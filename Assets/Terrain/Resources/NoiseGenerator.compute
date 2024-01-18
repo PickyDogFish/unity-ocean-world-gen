@@ -15,118 +15,12 @@ float _scale;
 int2 _tileCoords;
 float _percentUnderwater;
 
-const static float2x2 factorMat2 = float2x2(0.8,-0.6,0.6,0.8);
-
-
-
-float getNoise(int2 coords){
-    return Unity_GradientNoise_float(coords.xy/(float)_size);
-}
-
-float getFractalNoise(int2 coords, float H, int numOctaves)
-{    
-    float G = exp2(-H);
-    float frequency = 1.0;
-    float amplitude = 1.0;
-    float ampSum = 0;
-    float t = 0.0;
-    for( int i=0; i<numOctaves; i++ )
-    {
-        t += amplitude*getNoise(frequency*coords);
-        frequency *= 2.0;
-        ampSum += amplitude;
-        amplitude *= G;
-    }
-    return t / ampSum;
-}
-
-float getMorphedGradientNoise(int2 coords){
-    float2 newCoords = coords.xy/(float)_size;
-    float noise1 = Unity_GradientNoise_float(newCoords);
-    newCoords = newCoords + noise1.xx;
-    float noise2 = Unity_GradientNoise_float(newCoords);
-    return noise2;
-}
-
-float getMorphedValueNoise(float2 coords){
-    float2 newCoords = coords;
-    float3 noise = myValueNoise(newCoords);
-    newCoords = newCoords + noise.xx;
-    noise = myValueNoise(newCoords);
-    newCoords = newCoords + noise.xx;
-    noise = myValueNoise(newCoords);
-    return noise.x;
-}
-
-float getMorphedSimplexNoise(float2 coords){
-    float2 newCoords = coords;
-    float noise = sdnoise01(newCoords).x;
-    newCoords = newCoords + noise.xx;
-    noise = sdnoise01(newCoords).x;
-    newCoords = newCoords + noise.xx;
-    noise = sdnoise01(newCoords).x;
-    return noise;
-}
-
-
-float valueNoiseFBM(float2 coords, float H, int numOctaves)
-{   
-    float G = exp2(-H);
-    float frequency = 1.0;
-    float amplitude = 1.0;
-    float ampSum = 0;
-    float t = 0.0;
-    for( int i=0; i<numOctaves; i++ )
-    {
-        t += myValueNoise(coords * frequency).x * amplitude;
-        frequency *= 2.0;
-        ampSum += amplitude;
-        amplitude *= G;
-    }
-    return t / ampSum;
-}
-
-float MorphedFBMNoise(float2 coords, float H, int numOctaves){
-    float noise = valueNoiseFBM(coords, H, numOctaves);
-    float2 newCoords = coords + noise.xx;
-    noise = valueNoiseFBM(newCoords, H, numOctaves);
-    newCoords = newCoords + noise.xx;
-    noise = valueNoiseFBM(newCoords, H, numOctaves);
-    newCoords = newCoords + noise.xx*4;
-    noise = valueNoiseFBM(newCoords, H, numOctaves);
-    return noise;
-}
-
-//from https://iquilezles.org/articles/morenoise/
-// returns 3D fbm and its 3 derivatives
-float3 fbm(float2 x, uint octaves)
-{
-    float freq = 2;  // could be 2.0
-    float valueSum = 0.0;
-    float amplitude = 0.6;
-    float2 derivatives = 0.0;
-    float3 n = 0;
-
-    for(uint i=0; i < octaves; i++ )
-    {
-        n = sdnoise((x+n.xx/(10.0 * ((i*2)+1))) * freq);
-        derivatives += amplitude * n.yz;      // accumulate derivatives
-        valueSum += amplitude * n.x / (1.0+ dot(derivatives,derivatives));          // accumulate values
-        amplitude *= 0.55;
-        //x = freq * mul(factorMat2,x) + n.yz;
-        freq *= 1.9;
-    }
-    return float3( valueSum *0.5 + 0.5, derivatives);
-}
-
 float3 getNoiseWrapper(int2 coords){
     float2 floatCoords = coords.xy/(float)_size * _scale;
-    //return MorphedFBMNoise(floatCoords, 1.5, 4);
-    //return fbm(floatCoords, 8);
-    //return myFbmValueNoise(floatCoords * 5, 8);
-    return myMorphedFbmNoise(floatCoords*5, 12);
-    //return getMorphedValueNoise(coords);
-    //return myValueNoise(floatCoords.xy * 20);
+    //return myValueNoise(floatCoords.xy);
+    //return myFbmValueNoise(floatCoords, 8, 1);
+    //return selfMorphedFbmValueNoise(floatCoords, 8);
+    return myMorphedFbmNoise(floatCoords, 8);
 }
 
 
@@ -251,14 +145,19 @@ float4 sumOne(float4 input){
 }
 
 void SetSplatDataAt(uint2 id){
-    float3 normal = CalcNormal(id);
+    int2 coords = _tileCoords * (_size-1) + id.xy;
+    //float3 normal = CalcNormal(id);
+    float2 derivatives = _heightMap[id].yz;
+    float3 normal = normalize(float3(derivatives.x, 1, derivatives.y));
+    //float3 noise = getNoiseWrapper(coords);
+    //float3 normal = normalize(float3(noise.y, 0.5, noise.z));
+    float flatness = normal.y;
     float height = _heightMap[id].x;
-    float steepness = betterSmooth(normal.y);
-    float sandMask = saturate(-(height-_percentUnderwater/2 - 0.002)*1000) * steepness*2;
-    float grassMask = saturate((height-_percentUnderwater/2 - 0.002)*1000) * steepness*2;
-    float rockMask = 1-steepness;
-    float snowMask = saturate((height - 0.45)*100) * steepness; 
-    float4 map =  float4(snowMask,rockMask,grassMask, sandMask); 
+    float sandMask = saturate(-(height-_percentUnderwater/2 - 0.002)*1000) * flatness * flatness;
+    float grassMask = saturate((height-_percentUnderwater/2 - 0.002)*1000) * pow(flatness, 3);
+    float rockMask = 1-grassMask;
+    float snowMask = saturate((height - 0.45)*100) * flatness;
+    float4 map = float4(snowMask, rockMask, grassMask, sandMask);
     _splatMap[id] = sumOne(map);
 
 }

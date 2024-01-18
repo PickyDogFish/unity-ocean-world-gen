@@ -24,6 +24,9 @@ public class TerrainGenEditor : Editor
         if (GUILayout.Button("Show Noise Preview")){
             terrainGenerator.InitializeTerrainGen();
             noisePreview = terrainGenerator.PreviewNoise();
+            Texture2D tex = RandomUtils.ToTexture2D(noisePreview);
+            tex = RandomUtils.ToBW(tex);
+            RandomUtils.SaveTexture(tex, "terrainHeight.png");
         }
         if (GUILayout.Button("Hide Noise Preview")){
             noisePreview = null;
