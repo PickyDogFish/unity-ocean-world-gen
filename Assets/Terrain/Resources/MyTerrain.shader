@@ -35,7 +35,7 @@ Shader "Custom/Terrain"
 
         float3 getNoise(float2 pos, int octaves){
             //return myValueNoise(pos/_scale);
-            return myMorphedFbmNoise(pos/_scale, octaves);
+            return morphedFbmDerivatives(pos/_scale, octaves);
         }
 
         ENDHLSL

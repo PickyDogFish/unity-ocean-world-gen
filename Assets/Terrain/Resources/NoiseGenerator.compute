@@ -15,12 +15,13 @@ float _scale;
 int2 _tileCoords;
 float _percentUnderwater;
 
-float3 getNoiseWrapper(int2 coords){
+float3 getNoiseWrapper(int2 coords, int octaves){
     float2 floatCoords = coords.xy/(float)_size * _scale;
     //return myValueNoise(floatCoords.xy);
-    //return myFbmValueNoise(floatCoords, 8, 1);
+    //return myFbmValueNoise(floatCoords, 8, 0);
     //return selfMorphedFbmValueNoise(floatCoords, 8);
-    return myMorphedFbmNoise(floatCoords, 8);
+    //return morphedFbm(floatCoords, 8);
+    return morphedFbmDerivatives(floatCoords, octaves);
 }
 
 
@@ -29,18 +30,18 @@ float3 getNoiseWrapper(int2 coords){
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
     int2 coords = _tileCoords * (_size-1) + id.xy;
-    _noiseValues[id.y * _size + id.x] = getNoiseWrapper(coords).x;
+    _noiseValues[id.y * _size + id.x] = getNoiseWrapper(coords, 8).x;
 
 
     //As size is n^2 + 1, we have to handle the edge cases here
     if (id.x == _size-2){
-        _noiseValues[id.y * _size + id.x + 1] = getNoiseWrapper(coords.xy + int2(1,0)).x;
+        _noiseValues[id.y * _size + id.x + 1] = getNoiseWrapper(coords.xy + int2(1,0), 8).x;
     }
     if (id.y == _size-2){
-        _noiseValues[(id.y + 1) * _size + id.x] = getNoiseWrapper(coords.xy + int2(0,1)).x;
+        _noiseValues[(id.y + 1) * _size + id.x] = getNoiseWrapper(coords.xy + int2(0,1), 8).x;
     }
     if (id.y == _size-2 && id.x == _size-2){
-        _noiseValues[(id.y + 1) * _size + id.x + 1] = getNoiseWrapper(coords.xy + int2(1,1)).x;
+        _noiseValues[(id.y + 1) * _size + id.x + 1] = getNoiseWrapper(coords.xy + int2(1,1), 8).x;
     }
 }
 
@@ -51,27 +52,21 @@ RWTexture2D<float4> _noiseTexture;
 void NoiseTexture(uint3 id : SV_DispatchThreadID)
 {
     int2 coords = _tileCoords * (_size-1) + id.xy;
-    float3 noise = getNoiseWrapper(coords);
+    float3 noise = getNoiseWrapper(coords, 8);
     noise.x = noise.x/2;
-    //TESTING
-    //float steepness = length(noise.yz)/5;
-    //float steepness = (sqrt(noise.y * noise.y + noise.z * noise.z));
-    //noise.y = steepness;
-    //noise = abs(noise);
-    //END TESTING
     _noiseTexture[id.xy] = float4(noise,1);
     if (id.x == _size-2){
-        float3 noise = getNoiseWrapper(coords.xy + int2(1,0));
+        float3 noise = getNoiseWrapper(coords.xy + int2(1,0), 8);
         noise.x = noise.x/2;
         _noiseTexture[id.xy + uint2(1,0)] = float4(noise,1);
     }
     if (id.y == _size-2){
-        float3 noise = getNoiseWrapper(coords.xy + int2(0,1));
+        float3 noise = getNoiseWrapper(coords.xy + int2(0,1), 8);
         noise.x = noise.x/2;
         _noiseTexture[id.xy + uint2(0,1)] = float4(noise,1);
     }
     if (id.y == _size-2 && id.x == _size-2){
-        float3 noise = getNoiseWrapper(coords.xy + int2(1,1));
+        float3 noise = getNoiseWrapper(coords.xy + int2(1,1), 8);
         noise.x = noise.x/2;
         _noiseTexture[id.xy + uint2(1,1)] = float4(noise,1);
     }
@@ -87,7 +82,7 @@ RWTexture2D<float4> _splatMap;
 
 void SetHeightDataAt(uint2 id){
     int2 coords = _tileCoords * (_size-1) + id.xy;
-    float3 noise = getNoiseWrapper(coords);
+    float3 noise = getNoiseWrapper(coords, 8);
     //_splatMap[id] = CalculateSplatMap(noise);
     
     noise.x = noise.x/2; //when setting the heightmap for terrain directly, it seems to expect range from 0-0.5;
@@ -119,14 +114,14 @@ float3 CalcNormal(uint2 id){
     int2 off = int2(1, 0);
     float hR;
     if (id.x == _size-1){
-        hR = getNoiseWrapper(_tileCoords * (_size-1) + id.xy + off.xy).x/2;
+        hR = getNoiseWrapper(_tileCoords * (_size-1) + id.xy + off.xy, 8).x/2;
     } else {
         hR = _heightMap[id + off.xy].x;
     }
 
     float hU;
     if (id.y == _size-1){
-        hU = getNoiseWrapper(_tileCoords * (_size-1) + id.xy + off.yx).x/2;
+        hU = getNoiseWrapper(_tileCoords * (_size-1) + id.xy + off.yx, 8).x/2;
     } else {
         hU = _heightMap[id + off.yx].x;
     }
@@ -147,15 +142,15 @@ float4 sumOne(float4 input){
 void SetSplatDataAt(uint2 id){
     int2 coords = _tileCoords * (_size-1) + id.xy;
     //float3 normal = CalcNormal(id);
-    float2 derivatives = _heightMap[id].yz;
+    float2 derivatives = getNoiseWrapper(coords, 7).yz;//_heightMap[id].yz;
     float3 normal = normalize(float3(derivatives.x, 1, derivatives.y));
     //float3 noise = getNoiseWrapper(coords);
     //float3 normal = normalize(float3(noise.y, 0.5, noise.z));
     float flatness = normal.y;
     float height = _heightMap[id].x;
-    float sandMask = saturate(-(height-_percentUnderwater/2 - 0.002)*1000) * flatness * flatness;
-    float grassMask = saturate((height-_percentUnderwater/2 - 0.002)*1000) * pow(flatness, 3);
-    float rockMask = 1-grassMask;
+    float sandMask = saturate(-(height-_percentUnderwater/2 - 0.002)*1000) * flatness;
+    float grassMask = saturate((height-_percentUnderwater/2 - 0.002)*1000) * betterSmooth(flatness*flatness);
+    float rockMask = 1-grassMask - sandMask;
     float snowMask = saturate((height - 0.45)*100) * flatness;
     float4 map = float4(snowMask, rockMask, grassMask, sandMask);
     _splatMap[id] = sumOne(map);

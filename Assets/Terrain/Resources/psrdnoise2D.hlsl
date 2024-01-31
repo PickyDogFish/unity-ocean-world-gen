@@ -430,7 +430,6 @@ float3 myFbmValueNoise(float2 uv, uint numOctaves, float derivativeInfluence){
     float2 derivativeSum = 0;
     float valueSum = 0;
     float amplitude = 0.5;
-    float frequency = 2; 
     float3 noise = 0;
     for (uint i = 0; i < numOctaves; i++){
         noise = myValueNoise(p);
@@ -438,7 +437,7 @@ float3 myFbmValueNoise(float2 uv, uint numOctaves, float derivativeInfluence){
         valueSum += noise.x * amplitude / derivativeFactor;
         derivativeSum += noise.yz / derivativeFactor;
         amplitude *= 0.5;
-        p *= frequency;
+        p *= 2;
     }
     return float3(valueSum, derivativeSum);
 }
@@ -463,13 +462,18 @@ float3 selfMorphedFbmValueNoise(float2 uv, uint numOctaves, float derivativeInfl
 }
 
 
-float3 myMorphedFbmNoise(float2 uv, int octaves){
-    float3 morphNoise = myFbmValueNoise(uv.yx/4.5, 6, 1)*0.1;
-    return myFbmValueNoise(uv+morphNoise.yz, 8, 1);
+float3 morphedFbmDerivatives(float2 uv, int octaves){
+    float2 morphNoise = float2(myFbmValueNoise(uv.xy/2, 6, 0).x, myFbmValueNoise(uv.xy/2 + float2(2.46, 6.32), 6, 0).x);
+    return myFbmValueNoise(uv+morphNoise.xy, octaves, 4);
     //return selfMorphedFbmValueNoise(uv + morphNoise.xx, octaves, 0);
 
 }
 
+float3 morphedFbm(float2 uv, int octaves){
+    float3 morphNoise1 = (myFbmValueNoise(uv.xy/2, 4, 0));
+    float3 morphNoise2 = (myFbmValueNoise(uv.xy/2 + float2(2.46, 6.32), 4, 0));
+    return myFbmValueNoise(uv+float2(morphNoise1.x, morphNoise2.x), octaves, 0);
+}
 
 /*
 const mat2 m2 = mat2(0.8,-0.6,0.6,0.8);
