@@ -10,6 +10,9 @@ namespace PlantGeneration {
         public override void OnInspectorGUI() {
             DrawDefaultInspector();
             GeneratorPreview plantPreviewer = (GeneratorPreview)target;
+            if (GUILayout.Button("Randomize Seed")) {
+                plantPreviewer.RandomizeSeed();
+            }
             if (GUILayout.Button("Preview")) {
                 plantPreviewer.Preview();
             }

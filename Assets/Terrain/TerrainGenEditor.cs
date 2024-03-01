@@ -18,6 +18,7 @@ public class TerrainGenEditor : Editor
             terrainGenerator.RemoveAllTerrain();
             terrainGenerator.GenerateAndShowNearbyTerrain();
         }
+
         if (GUILayout.Button("Clear Terrain")) {
             terrainGenerator.RemoveAllTerrain();
         }

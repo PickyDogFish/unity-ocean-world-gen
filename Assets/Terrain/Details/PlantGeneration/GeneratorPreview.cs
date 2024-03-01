@@ -1,13 +1,22 @@
+using PlantGeneration.Kelp;
+using PlantGeneration.SpaceColonisation;
+using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 
 
 namespace PlantGeneration {
     [RequireComponent(typeof(MeshFilter))]
     [RequireComponent(typeof(MeshRenderer))]
+    [RequireComponent(typeof(GiantKelpGen))]
+    [RequireComponent(typeof(SpaceColonization))]
+    [RequireComponent(typeof(MeshRenderer))]
     public class GeneratorPreview : MonoBehaviour {
         public PlantGenSettings settings;
         [SerializeField] int seed = 0;
-        // Start is called before the first frame update
+        public void RandomizeSeed(){
+            seed = Random.Range(-1000, 1000);
+        }
         public void Preview() {
             settings.GetGenerator().Initialize(settings);
             GetComponent<MeshFilter>().sharedMesh = settings.GetGenerator().Generate(settings, seed);
@@ -23,7 +32,7 @@ namespace PlantGeneration {
             GameObject newGO = new GameObject();
             newGO.AddComponent<MeshFilter>().sharedMesh = settings.GetGenerator().Generate(settings, seed);
             newGO.AddComponent<MeshRenderer>().sharedMaterial = settings.material;
-            newGO.transform.parent = transform.parent;
+            newGO.transform.parent = transform;
             newGO.name = settings.speciesName + " " + seed;
         }
     }
