@@ -162,6 +162,7 @@ public class FFTWater : MonoBehaviour
         spectrumCS.SetFloat("_WindAngle", windAngle);
         spectrumCS.SetFloat("_WindMagnitude", windMagnitude);
         spectrumCS.Dispatch(CSKernels.initialSpectrumKernel, threadGroupsX, threadGroupsY, 1);
+        //RandomUtils.SaveTexture(initialSpectrumTex, "InitialSpectrum.jpg");
     }
 
     void CalculateConjugatedSpectrum()

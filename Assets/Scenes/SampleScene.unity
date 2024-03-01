@@ -800,6 +800,7 @@ MonoBehaviour:
   widthScale: 1024
   heightScale: 2048
   templateTerrain: {fileID: 15600000, guid: 88f91d9a0f0d2764d84ed736c73d9ef1, type: 2}
+  treePrefab: {fileID: 0}
 --- !u!4 &1254785112
 Transform:
   m_ObjectHideFlags: 0

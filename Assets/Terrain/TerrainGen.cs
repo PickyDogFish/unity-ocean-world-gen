@@ -17,9 +17,9 @@ public class TerrainGen : MonoBehaviour
 
     [Header("Noise settings")]
     [SerializeField] private float noiseScale = 1;
-    
+
     [Header("Chunk settings")]
-    [SerializeField] private Vector2Int noiseChunkOffset = Vector2Int.zero; 
+    [SerializeField] private Vector2Int noiseChunkOffset = Vector2Int.zero;
     [SerializeField] private int widthScale = 64;
     [SerializeField] private int heightScale = 64;
     private Vector3 size { get { return new Vector3(widthScale, heightScale, widthScale); } }
@@ -33,15 +33,20 @@ public class TerrainGen : MonoBehaviour
     private int detailResolution { get { return widthScale; } }
     private int detailResolutionPerPatch = 8;
     private int alphamapResolution { get { return widthScale + 1; } }
-    private int baseTextureResolution { get { return widthScale/2; } }
+    private int baseTextureResolution { get { return widthScale / 2; } }
 
+
+    [SerializeField] GameObject treePrefab;
 
 
     private Dictionary<Vector2Int, Terrain> generatedTileDictionary = new Dictionary<Vector2Int, Terrain>();
     private Dictionary<Vector2Int, Terrain> shownTileDictionary = new Dictionary<Vector2Int, Terrain>();
+    private Dictionary<Vector2Int, Matrix4x4[]> treeMatrixDictionary = new Dictionary<Vector2Int, Matrix4x4[]>();
 
-    public void InitializeTerrainGen(){
-        if (noiseCS == null){
+    public void InitializeTerrainGen()
+    {
+        if (noiseCS == null)
+        {
             noiseCS = Resources.Load<ComputeShader>("NoiseGenerator");
         }
         transform.position = new Vector3(0, -heightScale * percentUnderwater, 0);
@@ -66,8 +71,9 @@ public class TerrainGen : MonoBehaviour
         }
     }
 
-    public RenderTexture PreviewNoise(){
-        return NoiseGen.GetNoiseRT(new Vector2Int(-tileRange, -tileRange) + noiseChunkOffset, noiseCS, heightmapResolution, (tileRange * 2 + 1) * (heightmapResolution-1), noiseScale);
+    public RenderTexture PreviewNoise()
+    {
+        return NoiseGen.GetNoiseRT(new Vector2Int(-tileRange, -tileRange) + noiseChunkOffset, noiseCS, heightmapResolution, (tileRange * 2 + 1) * (heightmapResolution - 1), noiseScale);
     }
 
     void Update()
@@ -80,7 +86,8 @@ public class TerrainGen : MonoBehaviour
         Debug.Log(terrainCoords + "    left: " + generatedTileDictionary[terrainCoords].leftNeighbor + "    top: " + generatedTileDictionary[terrainCoords].topNeighbor + "    right: " + generatedTileDictionary[terrainCoords].rightNeighbor + "    bottom: " + generatedTileDictionary[terrainCoords].bottomNeighbor);
     }
 
-    public void GenerateAndShowNearbyTerrain(){
+    public void GenerateAndShowNearbyTerrain()
+    {
         List<Vector2Int> tilesInRange = ChunkCoordsInRange(cameraTransform.position, tileRange);
         foreach (Vector2Int newChunk in tilesInRange)
         {
@@ -88,7 +95,8 @@ public class TerrainGen : MonoBehaviour
         }
     }
 
-    public void HideFarTerrain(){
+    public void HideFarTerrain()
+    {
         List<Vector2Int> tilesInRange = ChunkCoordsInRange(cameraTransform.position, tileRange);
         List<Vector2Int> chunksToHide = shownTileDictionary.Keys.Except(tilesInRange).ToList();
         foreach (Vector2Int outOfRangeTile in chunksToHide)
@@ -169,10 +177,12 @@ public class TerrainGen : MonoBehaviour
         }
     }
 
-    public void RemoveAllTerrain(){
+    public void RemoveAllTerrain()
+    {
         shownTileDictionary.Clear();
         generatedTileDictionary.Clear();
-        while (transform.childCount > 0){
+        while (transform.childCount > 0)
+        {
             DestroyImmediate(transform.GetChild(0).gameObject);
         }
 
@@ -200,7 +210,7 @@ public class TerrainGen : MonoBehaviour
         TerrainData terrainData = new TerrainData();
 
         terrainData.name = name + tileCoords.ToString();
-        terrainData.size = new Vector3(size.x/widthScale*32, size.y, size.z/widthScale*32);
+        terrainData.size = new Vector3(size.x / widthScale * 32, size.y, size.z / widthScale * 32);
 
         terrainData.baseMapResolution = baseTextureResolution;
         terrainData.heightmapResolution = heightmapResolution;
@@ -208,7 +218,7 @@ public class TerrainGen : MonoBehaviour
         //RenderTexture rt = NoiseGen.GetNoiseRT(tileCoords + noiseChunkOffset, noiseCS, heightmapResolution, heightmapResolution, noiseScale);
         NoiseGen.TerrainGenData terrainGenData = NoiseGen.GetTerrainRT(tileCoords + noiseChunkOffset, noiseCS, heightmapResolution, heightmapResolution, noiseScale, percentUnderwater);
         Graphics.SetRenderTarget(terrainGenData.heightMap);
-        terrainData.CopyActiveRenderTextureToHeightmap(new RectInt(0,0, heightmapResolution, heightmapResolution), Vector2Int.zero, TerrainHeightmapSyncControl.HeightAndLod);
+        terrainData.CopyActiveRenderTextureToHeightmap(new RectInt(0, 0, heightmapResolution, heightmapResolution), Vector2Int.zero, TerrainHeightmapSyncControl.HeightAndLod);
         //terrainData.SetHeights(0, 0, heights);
 
         terrainData.alphamapResolution = alphamapResolution;
@@ -218,6 +228,8 @@ public class TerrainGen : MonoBehaviour
         Graphics.SetRenderTarget(terrainGenData.splatMap);
         terrainData.CopyActiveRenderTextureToTexture(TerrainData.AlphamapTextureName, 0, new RectInt(0, 0, terrainData.alphamapResolution, terrainData.alphamapResolution), Vector2Int.zero, false);
         //terrainData.SetAlphamaps(0, 0, CreateTextureAlphaMap(terrainData, heights));
+
+        //treeMatrixDictionary.Add(tileCoords, GenerateTreeMatrices(heights, 128, terrainData));
 
 
         terrainData.detailPrototypes = templateTerrain.detailPrototypes;
@@ -322,4 +334,38 @@ public class TerrainGen : MonoBehaviour
         return new Vector2Int(Mathf.FloorToInt(worldPos.x / widthScale), Mathf.FloorToInt(worldPos.y / widthScale));
     }
 
+
+    private Matrix4x4[] GenerateTreeMatrices(float[,] heights, int maxTrees, TerrainData terrainData)
+    {
+        Matrix4x4[] treeMatrices = new Matrix4x4[maxTrees];
+        int treeCount = 0;
+        // For each point on the alphamap...
+        for (int y = 0; y < terrainData.heightmapResolution; y++)
+        {
+            for (int x = 0; x < terrainData.heightmapResolution; x++)
+            {
+                // Get the normalized terrain coordinate that
+                // corresponds to the point.
+                float normX = x * 1.0f / (terrainData.alphamapWidth - 1);
+                float normY = y * 1.0f / (terrainData.alphamapHeight - 1);
+
+                // Get the steepness value at the normalized coordinate.
+                //float angle = terrainData.GetSteepness(normX, normY);
+                float height = WorldSpaceHeight(heights[x, y]);
+
+                if (height > 0){
+                    
+                    treeMatrices[treeCount] = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one);
+                    treeCount += 1;
+
+                }
+            }
+        }
+        return treeMatrices;
+    }
+
+    private void RenderTrees(Matrix4x4[] treeMatrices){
+        RenderParams rp = new RenderParams(treePrefab.GetComponent<MeshRenderer>().sharedMaterial);
+        Graphics.RenderMeshInstanced(rp, treePrefab.GetComponent<MeshFilter>().sharedMesh, 0, treeMatrices);
+    }
 }
