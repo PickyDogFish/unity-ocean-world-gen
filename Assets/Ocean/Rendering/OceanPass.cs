@@ -127,13 +127,14 @@ public class OceanSunshaftsPass : ScriptableRenderPass
 {
     [Serializable]
     public class SunShaftSettings{
-        public SunShaftSettings(int downsamplingFactor = 1, bool blur = true, bool preview = false, int stepCount = 25, float anisotropy = 0.7f, float maxDistance = 50 ){
+        public SunShaftSettings(int downsamplingFactor = 1, bool blur = true, bool preview = false, int stepCount = 25, float anisotropy = 0.7f, float maxDistance = 50 , float intensityMultiplier = 1){
             this.downsamplingFactor = math.clamp(downsamplingFactor, 1, 16);
             this.blur = blur;
             this.preview = preview;
             this.stepCount = stepCount;
             this.anisotropy = anisotropy;
             this.maxDistance = maxDistance;
+            this.intensityMultiplier = intensityMultiplier;
         }
         public int downsamplingFactor;
         public bool blur;
@@ -141,6 +142,7 @@ public class OceanSunshaftsPass : ScriptableRenderPass
         public int stepCount;
         public float maxDistance;
         public float anisotropy;
+        public float intensityMultiplier;
     }
 
     //private readonly OceanRendererFeature.OceanRenderingSettings _settings;
@@ -227,6 +229,7 @@ public class OceanSunshaftsPass : ScriptableRenderPass
         _sunShaftsMaterial.SetInt("_stepCount", settings.stepCount);
         _sunShaftsMaterial.SetFloat("_maxDistance", settings.maxDistance);
         _sunShaftsMaterial.SetFloat("_anisotrophy", settings.anisotropy);
+        _sunShaftsMaterial.SetFloat("_intensityMultiplier", settings.intensityMultiplier);
     }
 
     public override void FrameCleanup(CommandBuffer cmd)

@@ -21,6 +21,7 @@ Shader "Ocean/SunShafts"
             int _stepCount;
             float _anisotrophy;
             float _maxDistance;
+            float _intensityMultiplier;
             
         ENDHLSL
 
@@ -68,8 +69,6 @@ Shader "Ocean/SunShafts"
 
             float3 RayMarchFrag(Varyings input) : SV_Target
             {
-                //TODO expose this in the editor
-                float intensityMultiplier = 8;
 
                 //dont render rays when above the water surface
                 if (_WorldSpaceCameraPos.y > calcWaterHeight(input.uv)){
@@ -106,7 +105,7 @@ Shader "Ocean/SunShafts"
                 //to avoid rays being much brighter for closer objects at low step count
                 lightSum *= (rayLength / _maxDistance);
                 lightSum /= _stepCount;
-                return saturate(lightSum * intensityMultiplier);
+                return saturate(lightSum * _intensityMultiplier);
             }
 
             ENDHLSL
