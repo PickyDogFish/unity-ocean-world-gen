@@ -76,7 +76,7 @@ public class OceanUnderwaterEffectPass : ScriptableRenderPass
 
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
     {
-        cmd.GetTemporaryRT(_submergenceTargetID, 64, 64, 0, FilterMode.Bilinear, RenderTextureFormat.R8, RenderTextureReadWrite.Linear, 1);
+        cmd.GetTemporaryRT(_submergenceTargetID, 128, 128, 0, FilterMode.Bilinear, RenderTextureFormat.R8, RenderTextureReadWrite.Linear, 1);
         _submergenceTarget = new RenderTargetIdentifier(_submergenceTargetID);
         cmd.SetRenderTarget(_submergenceTarget);
     }
@@ -127,22 +127,18 @@ public class OceanSunshaftsPass : ScriptableRenderPass
 {
     [Serializable]
     public class SunShaftSettings{
-        public SunShaftSettings(int downsamplingFactor = 1, bool blur = true, bool preview = false, int stepCount = 25, float anisotropy = 0.7f, float maxDistance = 50 , float intensityMultiplier = 1){
+        public SunShaftSettings(int downsamplingFactor = 1){
             this.downsamplingFactor = math.clamp(downsamplingFactor, 1, 16);
-            this.blur = blur;
-            this.preview = preview;
-            this.stepCount = stepCount;
-            this.anisotropy = anisotropy;
-            this.maxDistance = maxDistance;
-            this.intensityMultiplier = intensityMultiplier;
         }
         public int downsamplingFactor;
-        public bool blur;
-        public bool preview;
-        public int stepCount;
-        public float maxDistance;
-        public float anisotropy;
-        public float intensityMultiplier;
+        public bool blur = true;
+        public bool preview = false;
+        public int stepCount = 25;
+        public float maxDistance = 50;
+        [Range(-1,1)]public float anisotropy = 0.7f;
+        public float intensityMultiplier = 1;
+        [Range(0,1)]public float absorptionCoefficient = 0.04f;
+        [Range(0,1)]public float scatteringCoefficient = 0.05f;
     }
 
     //private readonly OceanRendererFeature.OceanRenderingSettings _settings;
@@ -230,6 +226,8 @@ public class OceanSunshaftsPass : ScriptableRenderPass
         _sunShaftsMaterial.SetFloat("_maxDistance", settings.maxDistance);
         _sunShaftsMaterial.SetFloat("_anisotrophy", settings.anisotropy);
         _sunShaftsMaterial.SetFloat("_intensityMultiplier", settings.intensityMultiplier);
+        _sunShaftsMaterial.SetFloat("_extinctionCoefficient", settings.absorptionCoefficient + settings.scatteringCoefficient);
+        _sunShaftsMaterial.SetFloat("_scatteringCoefficient", settings.scatteringCoefficient);
     }
 
     public override void FrameCleanup(CommandBuffer cmd)

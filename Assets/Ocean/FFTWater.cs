@@ -224,6 +224,7 @@ public class FFTWater : MonoBehaviour
         Shader.SetGlobalFloat("Ocean_RefractionIntensity", refractionIntensity);
         Shader.SetGlobalTexture("Ocean_CubeMap", ReflectionProbe.defaultTexture);
         Shader.SetGlobalTexture("_OceanNormalTex", normalTex);
+        Shader.SetGlobalVector("Ocean_ViewerPosition", playerTransform.position);
         material.SetVector("ClipMap_ViewerPosition", playerTransform.position);
     }
 

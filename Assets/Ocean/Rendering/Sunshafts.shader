@@ -22,6 +22,8 @@ Shader "Ocean/SunShafts"
             float _anisotrophy;
             float _maxDistance;
             float _intensityMultiplier;
+            float _extinctionCoefficient;
+            float _scatteringCoefficient;
             
         ENDHLSL
 
@@ -33,7 +35,7 @@ Shader "Ocean/SunShafts"
             HLSLPROGRAM
             
             #pragma vertex ProceduralFullscreenVert
-            #pragma fragment RayMarchFrag
+            #pragma fragment NewRayMarchFrag
 
             float3 worldPositionFromDepth(float2 screenUV){
                 #if UNITY_REVERSED_Z
@@ -67,6 +69,43 @@ Shader "Ocean/SunShafts"
                 return 1.0f / (4.0f * 3.14159265359f) * numerator / denominator;
             }
 
+            float3 NewRayMarchFrag(Varyings input) : SV_TARGET{
+                //dont render rays when above the water surface
+                //if (_WorldSpaceCameraPos.y > calcWaterHeight(input.uv)){
+                //    return 1;
+                //}
+                
+                float3 rayEndWorldPos = worldPositionFromDepth(input.uv);
+
+                float mainLightLuminosity = 10;
+
+                float3 startPosition = _WorldSpaceCameraPos;
+                float3 rayVector = rayEndWorldPos - startPosition;
+                float3 rayDirection =  normalize(rayVector);
+                float rayLength = length(rayVector);
+                rayLength = min(rayLength, _maxDistance);
+
+                float stepLength = rayLength / _stepCount;
+                float3 step = rayDirection * stepLength;
+                rayEndWorldPos = startPosition + step * _stepCount;
+
+                //adding randomness to avoid artefacts from always sampling at same depth
+                float3 currentPosition = rayEndWorldPos - random01(input.uv) * step;
+                float lightSum = 0;
+
+                for (int i = 1; i < _stepCount; i++){
+                    float3 surfacePositionWS = currentPosition - currentPosition.y * (_MainLightPosition.xyz / _MainLightPosition.y); // _MainLightPosition is a normalized vector pointing towards the light. Scaling it to have y = 1. Result is point at world y = 0.
+                    float3 surfaceNormal = SampleNormal(surfacePositionWS.xz);
+                    float distFromSurface = length(surfacePositionWS - currentPosition);
+                    //                                                                                                      Beer-Lambert law L * e^(-K*d)
+                    float inscattering = _scatteringCoefficient * HenyeyGreenstein(dot(rayDirection, _MainLightPosition)) * mainLightLuminosity * pow(2.71828, -_extinctionCoefficient * distFromSurface) * saturate(dot(surfaceNormal, _MainLightPosition.xyz));
+                    float extinction = lightSum * pow(2.71828, -_extinctionCoefficient * stepLength);
+                    lightSum = lightSum + inscattering - extinction;
+                    currentPosition -= step;
+                }
+                return saturate(lightSum * _intensityMultiplier);
+            }
+
             float3 RayMarchFrag(Varyings input) : SV_Target
             {
 
@@ -88,8 +127,6 @@ Shader "Ocean/SunShafts"
 
                 float3 currentPosition = startPosition + random01(input.uv) * stepLength;
                 float lightSum = 0;
-
-                float3 testResult;
 
                 for (int i = 0; i < _stepCount; i++){
                     float3 surfacePositionWS = currentPosition - currentPosition.y * (_MainLightPosition.xyz / _MainLightPosition.y); // _MainLightPosition is a normalized vector pointing towards the light. Scaling it to have y = 1. Result is point at world y = 0.

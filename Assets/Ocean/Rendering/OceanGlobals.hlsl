@@ -28,6 +28,8 @@ float Ocean_WaveScale;
 
 float Ocean_NormalStrength;
 
+float3 Ocean_ViewerPosition;
+
 
 float3 SampleOceanCubeMap(float3 dir)
 {

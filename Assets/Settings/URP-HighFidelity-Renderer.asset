@@ -14,15 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   waterShader: {fileID: 4800000, guid: 29fe84121e4f79040bd739e039495586, type: 3}
-  renderUnderwater: 0
-  renderSunShafts: 0
+  renderUnderwater: 1
+  renderSunShafts: 1
   sunShaftSettings:
     downsamplingFactor: 1
     blur: 1
     preview: 0
-    stepCount: 100
-    maxDistance: 50
-    anisotropy: 0.7
+    stepCount: 128
+    maxDistance: 100
+    anisotropy: 0.091
+    intensityMultiplier: 2
+    absorptionCoefficient: 0.037
+    scatteringCoefficient: 0.079
 --- !u!114 &-1878332245247344467
 MonoBehaviour:
   m_ObjectHideFlags: 0
