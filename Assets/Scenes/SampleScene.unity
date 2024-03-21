@@ -788,24 +788,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spectrumCS: {fileID: 7200000, guid: 05d9cb74ab4750d42a4da25cffde0fbe, type: 3}
-  spectrumType: 1
-  windAngle: 0
-  windMagnitude: 8
-  phillipsA: 0.1
+  spectrumType: 0
+  windAngle: 0.52
+  windMagnitude: 5
+  phillipsA: 0.07
   lowCutoff: 0.0001
   highCutoff: 10000
   updateSpectrum: 0
-  repeatTime: 200
-  speed: 0.1
+  repeatTime: 2000
+  speed: 0.5
   lengthScale: 8
-  waveScale: 10
+  waveScale: 2
   material: {fileID: 2100000, guid: 7ad6da068747ed349b3e62eab558ffc5, type: 2}
   FFTCS: {fileID: 7200000, guid: 2f3c6f07349575e49b3c3560719b40ef, type: 3}
-  FFTSize: 128
+  FFTSize: 256
   displacementStrength: {x: -1, y: -1}
   normalStrength: 1
   fogColor: {r: 0.18970275, g: 0.31277725, b: 0.8207547, a: 1}
-  fogIntensity: 0.2
+  fogIntensity: 0.6
   refractionIntensity: 0.02
   playerTransform: {fileID: 1271878029}
   clipMapLevels: 4

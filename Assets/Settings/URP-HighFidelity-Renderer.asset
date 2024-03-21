@@ -21,11 +21,11 @@ MonoBehaviour:
     blur: 1
     preview: 0
     stepCount: 128
-    maxDistance: 100
-    anisotropy: 0.091
-    intensityMultiplier: 2
-    absorptionCoefficient: 0.037
-    scatteringCoefficient: 0.079
+    maxDistance: 500
+    anisotropy: 0.857
+    intensityMultiplier: 1
+    absorptionCoefficient: 0.1
+    scatteringCoefficient: 0.1
 --- !u!114 &-1878332245247344467
 MonoBehaviour:
   m_ObjectHideFlags: 0

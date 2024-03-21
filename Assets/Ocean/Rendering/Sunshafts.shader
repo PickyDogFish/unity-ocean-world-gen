@@ -70,11 +70,6 @@ Shader "Ocean/SunShafts"
             }
 
             float3 NewRayMarchFrag(Varyings input) : SV_TARGET{
-                //dont render rays when above the water surface
-                //if (_WorldSpaceCameraPos.y > calcWaterHeight(input.uv)){
-                //    return 1;
-                //}
-                
                 float3 rayEndWorldPos = worldPositionFromDepth(input.uv);
 
                 float mainLightLuminosity = 10;
@@ -87,7 +82,7 @@ Shader "Ocean/SunShafts"
 
                 float stepLength = rayLength / _stepCount;
                 float3 step = rayDirection * stepLength;
-                rayEndWorldPos = startPosition + step * _stepCount;
+                rayEndWorldPos = startPosition + rayDirection * rayLength;
 
                 //adding randomness to avoid artefacts from always sampling at same depth
                 float3 currentPosition = rayEndWorldPos - random01(input.uv) * step;
@@ -96,11 +91,14 @@ Shader "Ocean/SunShafts"
                 for (int i = 1; i < _stepCount; i++){
                     float3 surfacePositionWS = currentPosition - currentPosition.y * (_MainLightPosition.xyz / _MainLightPosition.y); // _MainLightPosition is a normalized vector pointing towards the light. Scaling it to have y = 1. Result is point at world y = 0.
                     float3 surfaceNormal = SampleNormal(surfacePositionWS.xz);
+
+
                     float distFromSurface = length(surfacePositionWS - currentPosition);
                     //                                                                                                      Beer-Lambert law L * e^(-K*d)
-                    float inscattering = _scatteringCoefficient * HenyeyGreenstein(dot(rayDirection, _MainLightPosition)) * mainLightLuminosity * pow(2.71828, -_extinctionCoefficient * distFromSurface) * saturate(dot(surfaceNormal, _MainLightPosition.xyz));
-                    float extinction = lightSum * pow(2.71828, -_extinctionCoefficient * stepLength);
+                    float inscattering = _scatteringCoefficient * HenyeyGreenstein(dot(rayDirection, _MainLightPosition)) * mainLightLuminosity * exp(-_extinctionCoefficient * distFromSurface) * saturate(dot(surfaceNormal, _MainLightPosition.xyz));
+                    float extinction = lightSum * exp(-_extinctionCoefficient * stepLength);
                     lightSum = lightSum + inscattering - extinction;
+                
                     currentPosition -= step;
                 }
                 return saturate(lightSum * _intensityMultiplier);
@@ -212,7 +210,7 @@ Shader "Ocean/SunShafts"
 
         Pass
         {
-            Name "Composit"
+            Name "Preview"
             Cull Off ZWrite Off ZTest Always
 
             HLSLPROGRAM
@@ -221,19 +219,19 @@ Shader "Ocean/SunShafts"
             #pragma fragment UnderwaterPostEffectFrag
 
 
-            // calculates the color of underwater objects when underwater
+            // render only if preview is enabled
             half4 UnderwaterPostEffectFrag(Varyings input) : SV_Target
             {
 
                 float shafts = SAMPLE_TEXTURE2D(Ocean_SunShaftsTexture, samplerOcean_SunShaftsTexture, input.uv).r;
-                float rawDepth = SampleSceneDepth(input.uv);
-                float3 WPFromDepth = ComputeWorldSpacePosition(input.uv, rawDepth, UNITY_MATRIX_I_VP);
-                float viewDist = length(WPFromDepth - _WorldSpaceCameraPos);
+                //float rawDepth = SampleSceneDepth(input.uv);
+                //float3 WPFromDepth = ComputeWorldSpacePosition(input.uv, rawDepth, UNITY_MATRIX_I_VP);
+                //float viewDist = length(WPFromDepth - _WorldSpaceCameraPos);
 
 
-                float3 backgroundColor = SampleSceneColor(input.uv);
-                float3 finalColor =  backgroundColor + shafts;// underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, viewDist, backgroundColor);
-                return shafts;// * submergence +  float3(0.3,0.5,0.9) * (1-submergence), 1);
+                //float3 backgroundColor = SampleSceneColor(input.uv);
+                //float3 finalColor =  backgroundColor + shafts;
+                return shafts;
             }
             ENDHLSL
         }

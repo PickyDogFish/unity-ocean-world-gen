@@ -87,7 +87,9 @@ Shader "Custom/FFTOcean"
                 float3 ambientColor = diffuseColor;
 
                 float3 viewDirection = normalize(_WorldSpaceCameraPos - IN.positionWS);
-
+                
+                float3 normal = SampleNormal(IN.positionWS.xz);
+                IN.normalWS = normal;
 
                 float2 screenUV = IN.positionHCS.xy / _ScaledScreenParams.xy;
                 float3 refracted = refract(viewDirection, IN.normalWS, 1.0/1.33);
@@ -103,7 +105,7 @@ Shader "Custom/FFTOcean"
                 if (facing >= 0){
                     float3 reflectionDir = reflect(-viewDirection, -IN.normalWS);
                     float3 reflectionColor = SampleOceanCubeMap(reflectionDir);
-                    float3 colorThroughWater = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, depthDif, backgroundColor, 0);
+                    float3 colorThroughWater = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, depthDif, backgroundColor, 0, WPFromDepth.y);
                     finalColor = lerp(colorThroughWater, reflectionColor, fernel);
                 }
 
@@ -113,9 +115,9 @@ Shader "Custom/FFTOcean"
                     float3 reflectionDir = reflect(viewDirection, IN.normalWS);
                     float3 reflectionColor = SampleOceanCubeMap(reflectionDir);
                     float sunshafts = SAMPLE_TEXTURE2D(Ocean_SunShaftsTexture, samplerOcean_SunShaftsTexture, screenUV).r;
-                    float3 colorThroughWater = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, 0, backgroundColor, 0);
+                    float3 colorThroughWater = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, 0, backgroundColor, 0, WPFromDepth.y);
                     finalColor = lerp(colorThroughWater, reflectionColor, fernel);
-                    finalColor = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, length(IN.positionWS - _WorldSpaceCameraPos), finalColor, sunshafts);
+                    finalColor = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, length(IN.positionWS - _WorldSpaceCameraPos), finalColor, sunshafts, WPFromDepth.y);
                 }
                 //finalColor = reflectionColor;
                 return saturate(float4(finalColor,1));
