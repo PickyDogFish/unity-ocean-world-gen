@@ -471,7 +471,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
+  near clip plane: 0.1
   far clip plane: 1000
   field of view: 60
   orthographic: 0
@@ -808,7 +808,7 @@ MonoBehaviour:
   fogIntensity: 0.6
   refractionIntensity: 0.02
   playerTransform: {fileID: 1271878029}
-  clipMapLevels: 4
+  clipMapLevels: 6
   clipMapVertexDensity: 64
 --- !u!4 &1023640315
 Transform:

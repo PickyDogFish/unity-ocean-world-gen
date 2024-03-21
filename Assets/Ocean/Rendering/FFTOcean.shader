@@ -100,6 +100,8 @@ Shader "Custom/FFTOcean"
                 float3 finalColor = 0;
                 float fernel = SchlickFresnel(IN.normalWS, viewDirection);
                 float3 backgroundColor = SampleSceneColor(screenUV);
+
+                float3 fromCamera = IN.positionWS - _WorldSpaceCameraPos;
                 
                 //if looking at the front face
                 if (facing >= 0){
@@ -107,6 +109,8 @@ Shader "Custom/FFTOcean"
                     float3 reflectionColor = SampleOceanCubeMap(reflectionDir);
                     float3 colorThroughWater = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, depthDif, backgroundColor, 0, WPFromDepth.y);
                     finalColor = lerp(colorThroughWater, reflectionColor, fernel);
+                    finalColor = saturate(finalColor);
+                    finalColor = lerp(finalColor, SampleOceanCubeMap(fromCamera), saturate(length(fromCamera/100)));
                 }
 
 

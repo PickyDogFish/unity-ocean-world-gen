@@ -65,7 +65,7 @@ public class FFTWater : MonoBehaviour
     [SerializeField] private int clipMapLevels = 4;
     [SerializeField] private int clipMapVertexDensity = 16;
 
-    void Start()
+        void Start()
     {
         //setting mesh bounds so it doesnt get culled when camera moves out of original mesh bounds
         GetComponentInChildren<MeshFilter>().mesh = GridBuilder.BuildClipMap(clipMapVertexDensity, clipMapLevels);
@@ -225,7 +225,7 @@ public class FFTWater : MonoBehaviour
         Shader.SetGlobalTexture("Ocean_CubeMap", ReflectionProbe.defaultTexture);
         Shader.SetGlobalTexture("_OceanNormalTex", normalTex);
         Shader.SetGlobalVector("Ocean_ViewerPosition", playerTransform.position);
-        material.SetVector("ClipMap_ViewerPosition", playerTransform.position);
+                material.SetVector("ClipMap_ViewerPosition", playerTransform.position);
     }
 
     RenderTexture CreateRenderTex(int width, int height, RenderTextureFormat format)
