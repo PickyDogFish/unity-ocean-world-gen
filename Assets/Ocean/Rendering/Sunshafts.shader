@@ -12,6 +12,7 @@ Shader "Ocean/SunShafts"
         HLSLINCLUDE
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "FullscreenVert.hlsl"
             #include "OceanGlobals.hlsl"
             #include "DisplacementSampler.hlsl"
@@ -89,15 +90,21 @@ Shader "Ocean/SunShafts"
                 float lightSum = 0;
 
                 for (int i = 1; i < _stepCount; i++){
-                    float3 surfacePositionWS = currentPosition - currentPosition.y * (_MainLightPosition.xyz / _MainLightPosition.y); // _MainLightPosition is a normalized vector pointing towards the light. Scaling it to have y = 1. Result is point at world y = 0.
-                    float3 surfaceNormal = SampleNormal(surfacePositionWS.xz);
+                    ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
+                    half4 shadowParams = GetMainLightShadowParams();
+                    half shadowValue = SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_LinearClampCompare), TransformWorldToShadowCoord(currentPosition), shadowSamplingData, shadowParams, false);
+                    if (shadowValue > 0){
 
-
-                    float distFromSurface = length(surfacePositionWS - currentPosition);
-                    //                                                                                                      Beer-Lambert law L * e^(-K*d)
-                    float inscattering = _scatteringCoefficient * HenyeyGreenstein(dot(rayDirection, _MainLightPosition)) * mainLightLuminosity * exp(-_extinctionCoefficient * distFromSurface) * saturate(dot(surfaceNormal, _MainLightPosition.xyz));
-                    float extinction = lightSum * exp(-_extinctionCoefficient * stepLength);
-                    lightSum = lightSum + inscattering - extinction;
+                        float3 surfacePositionWS = currentPosition - currentPosition.y * (_MainLightPosition.xyz / _MainLightPosition.y); // _MainLightPosition is a normalized vector pointing towards the light. Scaling it to have y = 1. Result is point at world y = 0.
+                        float3 surfaceNormal = SampleNormal(surfacePositionWS.xz);
+                        
+                        
+                        float distFromSurface = length(surfacePositionWS - currentPosition);
+                        //                                                                                                      Beer-Lambert law L * e^(-K*d)
+                        float inscattering = _scatteringCoefficient * HenyeyGreenstein(dot(rayDirection, _MainLightPosition)) * mainLightLuminosity * exp(-_extinctionCoefficient * distFromSurface) * saturate(dot(surfaceNormal, _MainLightPosition.xyz));
+                        float extinction = lightSum * exp(-_extinctionCoefficient * stepLength);
+                        lightSum = lightSum + inscattering - extinction;
+                    }
                 
                     currentPosition -= step;
                 }
@@ -127,6 +134,7 @@ Shader "Ocean/SunShafts"
                 float lightSum = 0;
 
                 for (int i = 0; i < _stepCount; i++){
+                    half shadowValue = MainLightRealtimeShadow(TransformWorldToShadowCoord(currentPosition));
                     float3 surfacePositionWS = currentPosition - currentPosition.y * (_MainLightPosition.xyz / _MainLightPosition.y); // _MainLightPosition is a normalized vector pointing towards the light. Scaling it to have y = 1. Result is point at world y = 0.
                     float3 normal = SampleNormal(surfacePositionWS.xz);
                     float distFromSurface = length(surfacePositionWS - currentPosition);

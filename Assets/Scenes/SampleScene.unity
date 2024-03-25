@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 410087040}
-  m_IndirectSpecularColor: {r: 0.120297186, g: 0.30056894, b: 0.48830926, a: 1}
+  m_IndirectSpecularColor: {r: 0.10289748, g: 0.29474175, b: 0.51732945, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -917,7 +917,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cameraTransform: {fileID: 1271878029}
-  tileRange: 5
+  tileRange: 2
   percentUnderwater: 0.388
   noiseScale: 0.2
   noiseChunkOffset: {x: 0, y: 0}
