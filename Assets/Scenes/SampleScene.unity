@@ -808,7 +808,7 @@ MonoBehaviour:
   fogIntensity: 0.6
   refractionIntensity: 0.02
   playerTransform: {fileID: 1271878029}
-  clipMapLevels: 6
+  clipMapLevels: 8
   clipMapVertexDensity: 16
 --- !u!4 &1023640315
 Transform:
