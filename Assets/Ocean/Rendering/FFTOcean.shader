@@ -51,9 +51,9 @@ Shader "Custom/FFTOcean"
             v2f vert(Attributes input){
                 v2f output;
 
-                output.positionWS = ClipMapVertex(input.position * Ocean_WaveScale/100);//TransformObjectToWorld(input.position);
-                float3 normal = SampleNormal(output.positionWS.xz);//_OceanNormalTex.SampleLevel(sampler_OceanNormalTex, output.positionWS.xz / Ocean_WaveScale, 0.0f);
-                output.normalWS = normal;
+                output.positionWS = ClipMapVertex(input.position * Ocean_WaveScale/100);
+                output.normalWS = SampleNormal(output.positionWS.xz);
+                
                 
                 output.positionWS += SampleDisplacement(output.positionWS.xz);
                 
@@ -109,8 +109,9 @@ Shader "Custom/FFTOcean"
                     float3 reflectionColor = SampleOceanCubeMap(reflectionDir);
                     float3 colorThroughWater = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, depthDif, backgroundColor, 0, WPFromDepth.y);
                     finalColor = lerp(colorThroughWater, reflectionColor, fernel);
-                    finalColor = saturate(finalColor);
-                    finalColor = lerp(finalColor, SampleOceanCubeMap(fromCamera), saturate(length(fromCamera/100)));
+                    //finalColor = saturate(finalColor);
+                    //distance fade
+                    finalColor = lerp(finalColor, SampleOceanCubeMap(fromCamera), saturate(length(fromCamera/50)));
                 }
 
 

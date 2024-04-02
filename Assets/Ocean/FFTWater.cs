@@ -83,7 +83,7 @@ public class FFTWater : MonoBehaviour
 
         //TODO expose these two variables in the editor
         FFTCS.SetVector("_Lambda", displacementStrength);
-        FFTCS.SetFloat("_NormalStrength", 1);
+        FFTCS.SetFloat("_NormalStrength", normalStrength);
 
         FFTCS.SetTexture(CSKernels.twiddlePrecomputeKernel, "_TwiddleTexture", twiddleTex);
         FFTCS.SetInt("_Size", FFTSize);
