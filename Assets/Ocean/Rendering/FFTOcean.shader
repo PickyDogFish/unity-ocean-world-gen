@@ -42,7 +42,7 @@ Shader "Custom/FFTOcean"
 
             struct v2f{
                 float4 positionHCS : SV_POSITION;
-                float2 uv : TEXCOORD0;
+                //float2 uv : TEXCOORD0;
                 float3 positionWS : TEXCOORD1;
                 float3 normalWS : TEXCOORD2;
             };
