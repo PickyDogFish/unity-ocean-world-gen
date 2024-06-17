@@ -13,6 +13,15 @@ SAMPLER(samplerOcean_CameraSubmergenceTexture);
 TEXTURE2D(Ocean_SunShaftsTexture);
 SAMPLER(samplerOcean_SunShaftsTexture);
 
+//Caustics
+TEXTURE2D(Ocean_CausticsTexture);
+SAMPLER(samplerOcean_CausticsTexture);
+half4x4 Ocean_MainLightDirection;
+float Ocean_LuminanceMaskStrength;
+float Ocean_ColorSplit;
+float Ocean_CausticsMaxDepth;
+float Ocean_TopFade;
+
 float4x4 Ocean_InverseProjectionMatrix;
 
 // environment maps
@@ -23,6 +32,9 @@ float4 Ocean_CubeMap_HDR;
 float3 Ocean_FogColor;
 float Ocean_FogIntensity;
 float Ocean_RefractionIntensity;
+
+float Ocean_WindAngle;
+float Ocean_WindMagnitude;
 
 float Ocean_WaveScale;
 

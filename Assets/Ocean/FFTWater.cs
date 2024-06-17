@@ -65,9 +65,18 @@ public class FFTWater : MonoBehaviour
     [SerializeField] private int clipMapLevels = 4;
     [SerializeField] private int clipMapVertexDensity = 16;
 
+    [Header("Caustics settings")]
+    [SerializeField] private float maxCausticsDepth;
+    [SerializeField] private float causticsTopFade;
+    [SerializeField] private float causticsColorSplit;
+    [SerializeField] private Texture2D causticsTex;
+
+    [Header("Other settings")]
+    [SerializeField] private Transform mainLightTransform;
+
+
         void Start()
     {
-        //setting mesh bounds so it doesnt get culled when camera moves out of original mesh bounds
         GetComponentInChildren<MeshFilter>().mesh = GridBuilder.BuildClipMap(clipMapVertexDensity, clipMapLevels);
 
 
@@ -225,7 +234,14 @@ public class FFTWater : MonoBehaviour
         Shader.SetGlobalTexture("Ocean_CubeMap", ReflectionProbe.defaultTexture);
         Shader.SetGlobalTexture("_OceanNormalTex", normalTex);
         Shader.SetGlobalVector("Ocean_ViewerPosition", playerTransform.position);
-                material.SetVector("ClipMap_ViewerPosition", playerTransform.position);
+        Shader.SetGlobalTexture("Ocean_CausticsTexture", causticsTex);
+        Shader.SetGlobalMatrix("Ocean_MainLightDirection", mainLightTransform.localToWorldMatrix);
+        Shader.SetGlobalFloat("Ocean_WindAngle", windAngle);
+        Shader.SetGlobalFloat("Ocean_WindMagnitude", windMagnitude);
+        Shader.SetGlobalFloat("Ocean_CausticsMaxDepth", maxCausticsDepth);
+        Shader.SetGlobalFloat("Ocean_TopFade", causticsTopFade);
+        Shader.SetGlobalFloat("Ocean_ColorSplit", causticsColorSplit);
+        material.SetVector("ClipMap_ViewerPosition", playerTransform.position);
     }
 
     RenderTexture CreateRenderTex(int width, int height, RenderTextureFormat format)

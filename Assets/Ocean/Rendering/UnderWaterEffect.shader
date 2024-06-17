@@ -10,11 +10,13 @@ Shader "Ocean/UnderwaterEffect"
     
         HLSLINCLUDE
             #include "FullscreenVert.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
             #include "OceanGlobals.hlsl"
             #include "DisplacementSampler.hlsl"
             #include "OceanVolume.hlsl"
+            #include "Caustics.hlsl"
             
         ENDHLSL
 
@@ -51,7 +53,7 @@ Shader "Ocean/UnderwaterEffect"
             #pragma vertex ProceduralFullscreenVert
             #pragma fragment UnderwaterPostEffectFrag
 
-            // calculates the color of underwater objects when underwater
+        // calculates the color of underwater objects when underwater
         half4 UnderwaterPostEffectFrag(Varyings input) : SV_Target
         {
 
@@ -67,6 +69,7 @@ Shader "Ocean/UnderwaterEffect"
             float3 backgroundColor = SampleSceneColor(input.uv);
             float sunshafts = SAMPLE_TEXTURE2D(Ocean_SunShaftsTexture, samplerOcean_SunShaftsTexture, input.uv).r * submergence;
             float3 finalColor = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, viewDist, backgroundColor, sunshafts, WPFromDepth.y);
+            finalColor += CalcCaustics(WPFromDepth);
             return float4(finalColor, 0);// * submergence +  float3(0.3,0.5,0.9) * (1-submergence), 1);
         }
             ENDHLSL
