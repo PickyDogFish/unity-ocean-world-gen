@@ -50,6 +50,8 @@ Shader "Ocean/UnderwaterEffect"
 
             HLSLPROGRAM
 
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+
             #pragma vertex ProceduralFullscreenVert
             #pragma fragment UnderwaterPostEffectFrag
 
