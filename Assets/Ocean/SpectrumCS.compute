@@ -178,12 +178,12 @@ void TimeSpectrumForFFT(uint3 id : SV_DISPATCHTHREADID) {
 
     float2 ht = htilde(_Time, id.x, id.y);
 
-    float2 displacementX = complexMultiply(ht, float2(0, -K.x / kMag));
-    float2 displacementZ = complexMultiply(ht, float2(0, -K.y / kMag));
+    float2 displacementX = 0;
+    float2 displacementZ = 0;
 
-    if (kMag < 0.00001f) {
-        displacementX = 0;
-        displacementZ = 0;
+    if (kMag > 0.00001f) {
+        displacementX = complexMultiply(ht, float2(0, -K.x / kMag));
+        displacementZ = complexMultiply(ht, float2(0, -K.y / kMag));
     }
 
     // Avoids doubling up on euler formula calc when there's no need
