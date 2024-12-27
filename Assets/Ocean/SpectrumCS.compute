@@ -181,10 +181,9 @@ void TimeSpectrumForFFT(uint3 id : SV_DISPATCHTHREADID) {
     float kMag = length(K);
     float kMagRcp = rcp(kMag);
 
-    float w_0 = 2.0f * PI / _RepeatTime;
-    float dispersion = floor(sqrt(GRAVITY * kMag) / w_0) * w_0 * _Time;
+    float disp = dispersion(kMag) * _Time;
 
-    float2 exponent = euler(dispersion);
+    float2 exponent = euler(disp);
 
     float2 htilde = complexMultiply(h0, exponent) + complexMultiply(h0conj, float2(exponent.x, -exponent.y));
 
