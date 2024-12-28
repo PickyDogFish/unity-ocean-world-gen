@@ -11,19 +11,15 @@ Shader "Custom/FFTOcean"
 
         Pass
         {
-            //can be used to tell unity not to render the pass on a frame/draw it during a given call to ScriptableRenderContext.DrawRendereres
+            //can be used to tell unity not to render the pass on a frame/draw during a given call to ScriptableRenderContext.DrawRendereres
             Tags { "LightMode" = "OceanMain"}
             Name "Ocean pass"
             Cull Off
             ZWrite On
-            // The HLSL code block. Unity SRP uses the HLSL language.
             HLSLPROGRAM
-            // This line defines the name of the vertex shader.
             #pragma vertex vert
-            // This line defines the name of the fragment shader.
             #pragma fragment frag
 
-            // Pull in URP library functions and our own common functions
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
@@ -66,7 +62,7 @@ Shader "Custom/FFTOcean"
 
 
             float SchlickFresnel(float3 normal, float3 viewDir){
-                float R0 = 0.308641975308642;
+                float R0 = 0.022;
                 float exponential = pow(1- saturate(dot(normal, viewDir)), 5);
                 return (R0 + (1.0 - R0) * exponential);
             }
