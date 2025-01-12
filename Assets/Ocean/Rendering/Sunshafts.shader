@@ -99,7 +99,7 @@ Shader "Ocean/SunShafts"
                         float3 surfaceNormal = SampleNormal(surfacePositionWS.xz);
                         
                         
-                        float distFromSurface = length(surfacePositionWS - currentPosition);
+                        float distFromSurface = length(surfacePositionWS - currentPosition)*3;
                         //                                                                                                      Beer-Lambert law L * e^(-K*d)
                         float inscattering = _scatteringCoefficient * HenyeyGreenstein(dot(rayDirection, _MainLightPosition)) * mainLightLuminosity * exp(-_extinctionCoefficient * distFromSurface) * saturate(dot(surfaceNormal, _MainLightPosition.xyz));
                         float extinction = lightSum * exp(-_extinctionCoefficient * stepLength);

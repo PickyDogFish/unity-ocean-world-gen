@@ -45,6 +45,7 @@ namespace PlantGeneration.SpaceColonisation {
         }
 
         public override Mesh Generate(PlantGenSettings plantSettings, int seed) {
+            //float startTime = Time.realtimeSinceStartup;
             CoralSCSettings settings = (CoralSCSettings) plantSettings;
             /* if (settings.useNoise){
                 GenerateAttractorsNoiseSphere(settings.attractorCount, settings.radius, settings.attractorFieldOffset, settings.seed, settings.noiseScale);
@@ -52,8 +53,11 @@ namespace PlantGeneration.SpaceColonisation {
             GenerateAttractorsSphere(settings.attractorCount, settings.radius, settings.attractorFieldOffset, seed);
             //}
             Colonize(settings);
+            //float algTime = Time.realtimeSinceStartup - startTime;
+            //Debug.Log("Algorithm: " + (algTime * 1000).ToString() + "ms");
             Mesh mesh = ToMesh(settings);
             mesh.RecalculateBounds();
+            //Debug.Log("Triangulation: " + (Time.realtimeSinceStartup - startTime - algTime).ToString() + "ms");
             return mesh;
         }
 

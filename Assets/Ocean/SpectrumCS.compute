@@ -141,15 +141,13 @@ void InitialSpectrum (uint3 id : SV_DispatchThreadID)
 
 [numthreads(8,8,1)]
 void ConjugatedSpectrum (uint3 id : SV_DispatchThreadID){
-    //somewhere -1?
     int modn = (_Size - id.x) % _Size;
     int modm = (_Size - id.y) % _Size;
 
     float4 initialValue =  _InitialSpectrumTex[id.xy];
     float4 initialValueConj =  _InitialSpectrumTex[uint2(modn, modm)];
 
-    _InitialSpectrumTex[id.xy] = float4(initialValue.xy, initialValueConj.x, initialValueConj.y);
-    //_InitialSpectrumTex[id.xy] = float4(id.xy/float(_Size), modn/float(_Size), modm/float(_Size));
+    _InitialSpectrumTex[id.xy] = float4(initialValue.xy, initialValueConj.x, -initialValueConj.y);
 }
 
 
@@ -171,7 +169,7 @@ void TimeSpectrum(uint3 id : SV_DispatchThreadID){
 
 
 [numthreads(8, 8, 1)]
-void TimeSpectrumForFFT(uint3 id : SV_DISPATCHTHREADID) {
+void TimeSpectrumForFFT(uint3 id : SV_DispatchThreadID) {
     float halfN = _Size / 2.0f;
     float2 K = (id.xy - halfN) * 2.0f * PI / _LengthScale;
     float kMag = length(K);

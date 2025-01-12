@@ -71,6 +71,9 @@ public class FFTWater : MonoBehaviour
     [SerializeField] private float causticsColorSplit;
     [SerializeField] private Texture2D causticsTex;
 
+    private bool saveHTilde = false;
+    private int saveCount = 0;
+
     [Header("Other settings")]
     [SerializeField] private Transform mainLightTransform;
 
@@ -124,6 +127,20 @@ public class FFTWater : MonoBehaviour
         InverseFFT(cmd, htildeDisplacementZTex);
         AssembleMaps(cmd);
         Graphics.ExecuteCommandBuffer(cmd);
+        if (saveHTilde){
+            saveCount += 1;
+            if (saveCount  == 50){
+                RandomUtils.SaveTexture(RandomUtils.ToBW(RandomUtils.ToTexture2D(htildeSlopeXTex), 2, 32, true), "hTildeSlopeXTex.png");
+                RandomUtils.SaveTexture(RandomUtils.ToBW(RandomUtils.ToTexture2D(htildeSlopeZTex), 2, 32, true), "hTildeSlopeYTex.png");
+                RandomUtils.SaveTexture(RandomUtils.ToBW(RandomUtils.ToTexture2D(htildeDisplacementXTex), 2, 128, true), "hTildeDisplacementXTex.png");
+                RandomUtils.SaveTexture(RandomUtils.ToBW(RandomUtils.ToTexture2D(htildeDisplacementZTex), 2, 128, true), "hTildeDisplacementYTex.png");
+                RandomUtils.SaveTexture(RandomUtils.ToBW(RandomUtils.ToTexture2D(initialSpectrumTex), 4, 256, true), "InitialSpectrum.jpg");
+                RandomUtils.SaveTexture(RandomUtils.ToBW(RandomUtils.ToTexture2D(htildeTex), 2, 128, true), "_TimeSpectrumTex.jpg");
+            }
+            if (saveCount >= 50){
+                saveHTilde = false;
+            }
+        }
         CommandBufferPool.Release(cmd);
     }
 
@@ -171,7 +188,6 @@ public class FFTWater : MonoBehaviour
         spectrumCS.SetFloat("_WindAngle", windAngle);
         spectrumCS.SetFloat("_WindMagnitude", windMagnitude);
         spectrumCS.Dispatch(CSKernels.initialSpectrumKernel, threadGroupsX, threadGroupsY, 1);
-        //RandomUtils.SaveTexture(initialSpectrumTex, "InitialSpectrum.jpg");
     }
 
     void CalculateConjugatedSpectrum()

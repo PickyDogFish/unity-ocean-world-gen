@@ -62,7 +62,7 @@ public class OceanPass : ScriptableRenderPass
 public class OceanUnderwaterEffectPass : ScriptableRenderPass
 {
     //private readonly OceanRendererFeature.OceanRenderingSettings _settings;
-    private readonly Material _underwaterEffectMaterial;
+    private readonly Material _underwaterEffectMaterial = new Material(Shader.Find("Ocean/UnderwaterEffect"));
     private RenderTargetIdentifier _submergenceTarget;
     private static readonly int _submergenceTargetID = Shader.PropertyToID("SubmergenceTarget");
     public static readonly int SubmergenceTexture = Shader.PropertyToID("Ocean_CameraSubmergenceTexture");
@@ -71,7 +71,7 @@ public class OceanUnderwaterEffectPass : ScriptableRenderPass
     public OceanUnderwaterEffectPass()
     {
         renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
-        _underwaterEffectMaterial = new Material(Shader.Find("Ocean/UnderwaterEffect"));
+        //_underwaterEffectMaterial = new Material(Shader.Find("Ocean/UnderwaterEffect"));
     }
 
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
@@ -142,7 +142,7 @@ public class OceanSunshaftsPass : ScriptableRenderPass
     }
 
     //private readonly OceanRendererFeature.OceanRenderingSettings _settings;
-    private readonly Material _sunShaftsMaterial;
+    private Material _sunShaftsMaterial = new Material(Shader.Find("Ocean/SunShafts"));
     private RenderTargetIdentifier _raysTarget;
     private RenderTargetIdentifier _blurXTarget;
     private static readonly int _blurXTargetID = Shader.PropertyToID("_blurXTarget");
@@ -155,7 +155,7 @@ public class OceanSunshaftsPass : ScriptableRenderPass
     public OceanSunshaftsPass()
     {
         renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
-        _sunShaftsMaterial = new Material(Shader.Find("Ocean/SunShafts"));
+        //_sunShaftsMaterial = new Material(Shader.Find("Ocean/SunShafts"));
     }
 
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)

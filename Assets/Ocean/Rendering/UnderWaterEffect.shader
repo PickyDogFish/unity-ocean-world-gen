@@ -37,7 +37,7 @@ Shader "Ocean/UnderwaterEffect"
                 positionVS = positionVS / positionVS.w;
                 float4 positionWS = mul(UNITY_MATRIX_I_V, positionVS);
                 float waterHeight = SampleHeight(positionWS.xz);
-                return ((positionWS.y - waterHeight) < 0.005);
+                return ((positionWS.y - waterHeight) < 0.00);
             }
 
             ENDHLSL
@@ -64,14 +64,16 @@ Shader "Ocean/UnderwaterEffect"
             clip(submergence-0.5);
             float rawDepth = SampleSceneDepth(input.uv);
             float3 WPFromDepth = ComputeWorldSpacePosition(input.uv, rawDepth, UNITY_MATRIX_I_VP);
+            float3 viewDirection = normalize(_WorldSpaceCameraPos - WPFromDepth);
             float viewDist = clamp(length(WPFromDepth - _WorldSpaceCameraPos), 0, 100);
 
             float3 forward = mul(UNITY_MATRIX_V, float4(0, 0, 1, 0)).xyz;
 
             float3 backgroundColor = SampleSceneColor(input.uv);
+            backgroundColor += CalcCaustics(WPFromDepth);
             float sunshafts = SAMPLE_TEXTURE2D(Ocean_SunShaftsTexture, samplerOcean_SunShaftsTexture, input.uv).r * submergence;
-            float3 finalColor = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, viewDist, backgroundColor, sunshafts, WPFromDepth.y);
-            finalColor += CalcCaustics(WPFromDepth);
+            float3 finalColor = underwaterFogColor(viewDirection, viewDist, backgroundColor, 0, WPFromDepth.y);
+            finalColor = lerp(finalColor, 1, sunshafts);
             return float4(finalColor, 0);// * submergence +  float3(0.3,0.5,0.9) * (1-submergence), 1);
         }
             ENDHLSL

@@ -77,3 +77,4 @@ crashlytics-build.properties
 # Personal settings
 .vscode/
 omnisharp.json
+/[Aa]ssets/[Tt]errain/[Gg]enerated/*

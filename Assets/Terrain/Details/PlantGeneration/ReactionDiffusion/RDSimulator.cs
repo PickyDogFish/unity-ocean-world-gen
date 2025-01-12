@@ -25,8 +25,10 @@ namespace PlantGeneration.ReactionDiffusion
             Texture2D initialTexture = TextureScaler.Scaled(settings.initialTexture, settings.resolution, settings.resolution);
             RDShader.SetTexture(kernel, "Read", initialTexture);
 
-            Texture2D flowTexture = TextureScaler.Scaled(settings.flowTexture, settings.resolution, settings.resolution);
-            RDShader.SetTexture(kernel, "FlowTex", flowTexture);
+            if (settings.flowIntensity >0){
+                Texture2D flowTexture = TextureScaler.Scaled(settings.flowTexture, settings.resolution, settings.resolution);
+                RDShader.SetTexture(kernel, "FlowTex", flowTexture);
+            }
             RDShader.Dispatch(kernel, settings.resolution / 8, settings.resolution / 8, 1);
         }
 

@@ -58,7 +58,7 @@ Shader "Test/NoiseDerTest"
             float3 getNoiseWrapper(float2 uv){
                 //return myValueNoise(uv);
                 //return myMorphedFbmNoise(uv, 4);
-                return myFbmValueNoise(uv, 4, 0);
+                return fbmValueNoise(uv, 4, 0);
                 //return testFbm(uv, 2);
             }
 

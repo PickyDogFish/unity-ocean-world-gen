@@ -1,7 +1,14 @@
 using UnityEngine;
+using UnityEngine.InputSystem.Interactions;
 using UnityEngine.Rendering;
 
 namespace MarchingCubes {
+
+struct VertexData
+{
+    public Vector3 position;
+    public Vector3 normal;
+}
 
 //
 // Isosurface mesh builder with the marching cubes algorithm
@@ -82,6 +89,32 @@ sealed class MeshBuilder : System.IDisposable
         // Bounding box
         var ext = new Vector3(_grids.x, _grids.y, _grids.z) * scale;
         _mesh.bounds = new Bounds(Vector3.zero, ext);
+
+        // Retrieve vertex data
+        VertexData[] vertices = new VertexData[_triangleBudget * 3];
+        _vertexBuffer.GetData(vertices);
+        // Extract positions into a separate array
+        Vector3[] positions = new Vector3[vertices.Length];
+        Vector3[] normals = new Vector3[vertices.Length];
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            positions[i] = vertices[i].position;
+            normals[i] = vertices[i].normal;
+        }
+
+
+        // Retrieve index data
+        int[] indices = new int[_triangleBudget * 3];
+        _indexBuffer.GetData(indices);
+
+        // Assign data to the mesh
+        _mesh.Clear();
+        _mesh.vertices = positions;
+        _mesh.triangles = indices;
+        _mesh.normals = normals;
+
+
+        _mesh.UploadMeshData(true);
         temp.Release();
     }
     void RunCompute(RenderTexture voxels, float target, float scale)
@@ -112,6 +145,7 @@ sealed class MeshBuilder : System.IDisposable
         // Bounding box
         var ext = new Vector3(_grids.x, _grids.y, _grids.z) * scale;
         _mesh.bounds = new Bounds(Vector3.zero, ext);
+        _mesh.UploadMeshData(false);
         temp.Dispose();
     }
 

@@ -17,7 +17,7 @@ public class GridBuilder : MonoBehaviour
 
         //the middle plane
         combine[0].mesh = BuildPlane(clipLevelHalfSize + _overlap,clipLevelHalfSize + _overlap, new Vector3(1,0,1) * (clipLevelHalfSize+1)/2);
-        combine[0].transform = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one);
+        combine[0].transform = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one/vertexDensity);
 
 
         //the rings
@@ -25,7 +25,7 @@ public class GridBuilder : MonoBehaviour
         for (int i = 0; i < clipMapLevels; i++)
         {
             combine[i + 1].mesh = ring;
-            combine[i + 1].transform = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one * Mathf.Pow(2, i));
+            combine[i + 1].transform = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one/vertexDensity * Mathf.Pow(2, i));
         }
 
         mesh.CombineMeshes(combine, true);

@@ -27,6 +27,7 @@ Shader "Custom/FFTOcean"
             #include "DisplacementSampler.hlsl"
             #include "OceanVolume.hlsl"
             #include "ClipMap.hlsl"
+            #include "Caustics.hlsl"
 
 
             float _Displacement;
@@ -47,7 +48,7 @@ Shader "Custom/FFTOcean"
             v2f vert(Attributes input){
                 v2f output;
 
-                output.positionWS = ClipMapVertex(input.position * Ocean_WaveScale/100);
+                output.positionWS = ClipMapVertex(input.position);
                 output.normalWS = SampleNormal(output.positionWS.xz);
                 
                 
@@ -78,47 +79,49 @@ Shader "Custom/FFTOcean"
             }
 
             float4 frag(v2f IN, float facing : VFACE) : SV_TARGET{
-                float3 diffuseColor = float3(0.1,0.2,0.8);
-                float4 specularColor = float4(0.85,0.85,0.95, 1);
-                float3 ambientColor = diffuseColor;
-
                 float3 viewDirection = normalize(_WorldSpaceCameraPos - IN.positionWS);
                 
                 float3 normal = SampleNormal(IN.positionWS.xz);
                 IN.normalWS = normal;
-
+                
                 float2 screenUV = IN.positionHCS.xy / _ScaledScreenParams.xy;
                 float3 refracted = refract(viewDirection, IN.normalWS, 1.0/1.33);
                 screenUV += refracted.xz * Ocean_RefractionIntensity;
                 float3 WPFromDepth = worldPositionFromDepth(screenUV);
                 float depthDif = length(WPFromDepth - IN.positionWS);
-
+                
                 float3 finalColor = 0;
                 float fernel = SchlickFresnel(IN.normalWS, viewDirection);
                 float3 backgroundColor = SampleSceneColor(screenUV);
-
-                float3 fromCamera = IN.positionWS - _WorldSpaceCameraPos;
+                
+                float3 fromCameraToWater = IN.positionWS - _WorldSpaceCameraPos;
                 
                 //if looking at the front face
                 if (facing >= 0){
-                    float3 reflectionDir = reflect(-viewDirection, -IN.normalWS);
+                    float3 reflectionDir = reflect(-viewDirection, float3(-IN.normalWS.x, IN.normalWS.y, -IN.normalWS.z));
                     float3 reflectionColor = SampleOceanCubeMap(reflectionDir);
-                    float3 colorThroughWater = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, depthDif, backgroundColor, 0, WPFromDepth.y);
+                    backgroundColor += CalcCaustics(WPFromDepth);
+                    float3 colorThroughWater = underwaterFogColor(viewDirection, depthDif, backgroundColor, 0, -abs(WPFromDepth.y));
+                    //finalColor = colorThroughWater;
                     finalColor = lerp(colorThroughWater, reflectionColor, fernel);
                     //finalColor = saturate(finalColor);
-                    //distance fade
-                    finalColor = lerp(finalColor, SampleOceanCubeMap(fromCamera), saturate(length(fromCamera/50)));
+                    //top surface fades into horizon
+                    finalColor = lerp(finalColor, SampleOceanCubeMap(fromCameraToWater), saturate(length(fromCameraToWater/100)));
                 }
 
 
                 //If looking at the back face
                 if (facing < 0 ){
-                    float3 reflectionDir = reflect(viewDirection, IN.normalWS);
-                    float3 reflectionColor = SampleOceanCubeMap(reflectionDir);
+                    float3 reflectionDir = reflect(-viewDirection, float3(IN.normalWS.x, -IN.normalWS.y, IN.normalWS.z));
+                    float3 reflectionColor = Ocean_FogColor;
                     float sunshafts = SAMPLE_TEXTURE2D(Ocean_SunShaftsTexture, samplerOcean_SunShaftsTexture, screenUV).r;
-                    float3 colorThroughWater = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, 0, backgroundColor, 0, WPFromDepth.y);
-                    finalColor = lerp(colorThroughWater, reflectionColor, fernel);
-                    finalColor = underwaterFogColor(Ocean_FogColor, Ocean_FogIntensity, length(IN.positionWS - _WorldSpaceCameraPos), finalColor, sunshafts, WPFromDepth.y);
+                    float3 colorThroughWater = underwaterFogColor(viewDirection, length(fromCameraToWater), backgroundColor, 0, IN.positionWS.y);
+                    finalColor = lerp(colorThroughWater, reflectionColor, 1-fernel);
+                    //bottom surface fades into fog
+                    finalColor = lerp(finalColor, colorThroughWater, saturate(exp(-Ocean_FogIntensity * length(fromCameraToWater))));
+                    finalColor = lerp(finalColor, 1, sunshafts);
+                    //finalColor = underwaterFogColor(viewDirection, length(fromCameraToWater), finalColor, sunshafts, IN.positionWS);
+                    //finalColor = backgroundColor;
                 }
                 //finalColor = reflectionColor;
                 return saturate(float4(finalColor,1));

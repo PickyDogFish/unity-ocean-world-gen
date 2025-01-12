@@ -190,7 +190,10 @@ public class TerrainGen : MonoBehaviour
 
     public Terrain CreateTerrainTile(Vector2Int terrainCoords)
     {
+        //Debug.Log("Generating terrain tile " + terrainCoords);
+        //float startTime = Time.realtimeSinceStartup;
         GameObject newTerrainGO = Terrain.CreateTerrainGameObject(CreateTerrainData(terrainCoords));
+        //Debug.Log(Time.realtimeSinceStartup - startTime);
         newTerrainGO.name = "Terrain" + terrainCoords.ToString();
         newTerrainGO.transform.parent = gameObject.transform;
 
@@ -202,11 +205,13 @@ public class TerrainGen : MonoBehaviour
         Terrain terrain = newTerrainGO.GetComponent<Terrain>();
         terrain.groupingID = 1;
         terrain.allowAutoConnect = false;
+        //Debug.Log(Time.realtimeSinceStartup - startTime);
         return terrain;
     }
 
     private TerrainData CreateTerrainData(Vector2Int tileCoords)
     {
+        //float startTime = Time.realtimeSinceStartup;
         TerrainData terrainData = new TerrainData();
 
         terrainData.name = name + tileCoords.ToString();
@@ -230,16 +235,22 @@ public class TerrainGen : MonoBehaviour
         //terrainData.SetAlphamaps(0, 0, CreateTextureAlphaMap(terrainData, heights));
 
         //treeMatrixDictionary.Add(tileCoords, GenerateTreeMatrices(heights, 128, terrainData));
-
+        //float hmTime = Time.realtimeSinceStartup - startTime;
+        //Debug.Log("generating heightmap and related: " + (hmTime));
 
         terrainData.detailPrototypes = templateTerrain.detailPrototypes;
         terrainData.SetDetailScatterMode(DetailScatterMode.CoverageMode);
-        int[,] detailMap = terrainData.GetDetailLayer(0, 0, terrainData.detailWidth, terrainData.detailHeight, 0);
-        detailMap = CreateDetailAlphaMap(detailMap, heights);
-        terrainData.SetDetailLayer(0, 0, 0, detailMap);
-        terrainData.SetDetailLayer(0, 0, 1, detailMap);
-        terrainData.SetDetailLayer(0, 0, 2, detailMap);
-        terrainData.SetDetailLayer(0, 0, 3, detailMap);
+        int[,] grassDetailMap = terrainData.GetDetailLayer(0, 0, terrainData.detailWidth, terrainData.detailHeight, 0);
+        int[,] coralDetailsMap = new int[grassDetailMap.GetLength(0), grassDetailMap.GetLength(1)];
+        coralDetailsMap = CreateCoralMap(coralDetailsMap, heights, tileCoords);
+        grassDetailMap = CreateDetailAlphaMap(grassDetailMap, heights);
+        terrainData.SetDetailLayer(0, 0, 0, grassDetailMap); //grass flower 1
+        terrainData.SetDetailLayer(0, 0, 1, grassDetailMap); //grass flower 2
+        terrainData.SetDetailLayer(0, 0, 2, grassDetailMap); //grass 1
+        terrainData.SetDetailLayer(0, 0, 3, grassDetailMap); //grass 2
+        terrainData.SetDetailLayer(0, 0, 4, coralDetailsMap); //sc coral 1
+        terrainData.SetDetailLayer(0, 0, 5, coralDetailsMap); //sc coral 1
+        //Debug.Log("gdetails: " + (Time.realtimeSinceStartup - startTime - hmTime));
         return terrainData;
     }
 
@@ -252,9 +263,28 @@ public class TerrainGen : MonoBehaviour
             for (int x = 0; x < detailMap.GetLength(0); x++)
             {
                 float height = WorldSpaceHeight(heights[x, y]);
-                if (height > 0)
+                if (height > 8)
                 {
-                    detailMap[x, y] = 0;
+                    detailMap[x, y] = 1000;
+                }
+            }
+        }
+        return detailMap;
+    }
+
+    private int[,] CreateCoralMap(int[,] detailMap, float[,] heights, Vector2Int tileCoords)
+    {
+        // For each point on the alphamap...
+        for (int y = 0; y < detailMap.GetLength(1); y++)
+        {
+            for (int x = 0; x < detailMap.GetLength(0); x++)
+            {
+                float height = WorldSpaceHeight(heights[x, y]);
+                float scale = 64.0f;
+                if (height < -1)
+                {
+                    float noise = Mathf.PerlinNoise(x/scale + tileCoords.x * detailMap.GetLength(0)/scale, y/scale + tileCoords.y * detailMap.GetLength(1)/scale);
+                    detailMap[x, y] = (int)(150 * noise*noise);
                 }
             }
         }
@@ -276,7 +306,6 @@ public class TerrainGen : MonoBehaviour
                 float normX = x * 1.0f / (terrainData.alphamapWidth - 1);
                 float normY = y * 1.0f / (terrainData.alphamapHeight - 1);
 
-                // Get the steepness value at the normalized coordinate.
                 float angle = terrainData.GetSteepness(normX, normY);
                 float height = WorldSpaceHeight(heights[x, y]);
 

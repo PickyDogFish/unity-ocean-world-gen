@@ -148,8 +148,8 @@ void SetSplatDataAt(uint2 id){
     //float3 normal = normalize(float3(noise.y, 0.5, noise.z));
     float flatness = normal.y;
     float height = _heightMap[id].x;
-    float sandMask = saturate(-(height-_percentUnderwater/2 - 0.002)*1000) * flatness;
-    float grassMask = saturate((height-_percentUnderwater/2 - 0.002)*1000) * betterSmooth(flatness*flatness);
+    float sandMask = saturate(-(height-_percentUnderwater/2 - 0.02)*100) * flatness*flatness;
+    float grassMask = saturate((height-_percentUnderwater/2)*100) * betterSmooth(flatness*flatness);
     float rockMask = 1-grassMask - sandMask;
     float snowMask = saturate((height - 0.45)*100) * flatness;
     float4 map = float4(snowMask, rockMask, grassMask, sandMask);

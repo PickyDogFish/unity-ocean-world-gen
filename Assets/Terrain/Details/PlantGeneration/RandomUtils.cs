@@ -1,12 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.Windows;
 
 public static class RandomUtils
 {
 
-    const string SAVE_LOCATION = "E:/UserFolders/Pictures/";
+    const string SAVE_LOCATION = "E:/pifko/Pictures/diploma/";
     public static Vector2 RandomVector2(System.Random random)
     {
         return new Vector2(RandomFloat11(random), RandomFloat11(random));
@@ -40,7 +42,7 @@ public static class RandomUtils
     {
         byte[] bytes = tex.EncodeToPNG();
         System.IO.File.WriteAllBytes(SAVE_LOCATION + fileName, bytes);
-        Debug.Log("Saved texture to " + fileName);
+        Debug.Log("Saved texture to " + SAVE_LOCATION + fileName);
     }
 
     public static void SaveTexture(RenderTexture rTex, string fileName)
@@ -53,9 +55,9 @@ public static class RandomUtils
     {
         Texture2D tex;
         if (res != 0){
-            tex = new Texture2D(res, res, TextureFormat.RGB24, false);
+            tex = new Texture2D(res, res, TextureFormat.ARGB32, false);
         } else {
-            tex = new Texture2D(rTex.width, rTex.height, TextureFormat.RGB24, false);
+            tex = new Texture2D(rTex.width, rTex.height, TextureFormat.ARGB32, false);
         }
         RenderTexture.active = rTex;
         tex.ReadPixels(new Rect(0, 0, rTex.width, rTex.height), 0, 0);
@@ -78,7 +80,7 @@ public static class RandomUtils
         return tex;
     }
 
-    public static Texture2D ToBW(Texture2D inTex, int channel = 0)
+    public static Texture2D ToBW(Texture2D inTex, int channel = 0, float multiplier = 1, bool avg = false)
     {
         Texture2D outTex = new Texture2D(inTex.width, inTex.height, TextureFormat.RGB24, false);
 
@@ -86,7 +88,15 @@ public static class RandomUtils
 
         for (int i = 0; i < pixels.Length; i++)
         {
-            float color = pixels[i][channel];
+            float color = 0;
+            if (avg){
+                for (int j = 0; j < channel; j++)
+                    color += Mathf.Abs(pixels[i][j]);
+                color /= channel;
+                color *= multiplier;
+            } else {
+                color = Mathf.Abs(pixels[i][channel]) * multiplier;
+            }
             pixels[i] = new Color(color, color, color, 1);
         }
 
